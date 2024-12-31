@@ -4,13 +4,16 @@
  * Author: Jacob Collins
  * Usage:
  * >$ make inverse_add
- * >$ ./inverse_add.o [sum_dec_or_bin] [n_res_to_show]
+ * >$ ./inverse_add.o [sum to deconstruct] [number of results to show (optional)]
  * 
  * Examples:
+ * 
+ * Default Usage
  * >$ ./inverse_add.o 
  *    Finding sum components of: 15
  *    ...
- * 
+ *
+ * Specific Input
  * >$ ./inverse_add.o 20
  *   Finding sum components of: 20 (10100)
  *   Q-Alg finished in 7s 139ms 696µs 940ns.
@@ -21,6 +24,7 @@
  *   8 + 12 = 20 (4.15%)
  *   2000 / 2000 Correct. (100.00%)
  * 
+ * Specific Input and Shortened output
  * >$ ./inverse_add.o 31 3
  *   Finding sum components of: 31 (11111)
  *   Q-Alg finished in 5s 963ms 167µs 620ns.
@@ -257,12 +261,15 @@ struct run_alg {
     // Sum register needs 1 extra bit (111 + 111 = 1110)
     int nbits_sum = nbits_val + 1;
 
-    // 2. Initialize Registers
-    // cudaq::qvector v_reg1(nbits_val);  // Value 1 reg
-    // cudaq::qvector v_reg2(nbits_val);  // Value 2 reg
+    // 2. Initialize Registers & Kernels
     cudaq::qvector v_reg(2*nbits_val);  // Values reg. Both 'input' values are stored here.
     cudaq::qvector c_reg(nbits_sum);   // Sum reg
     cudaq::qvector tgt(1);
+
+    cudaq::qview val1_reg = v_reg.front(nbits_val);
+    cudaq::qview val2_reg = v_reg.back(nbits_val);
+    cudaq::qview output_reg = c_reg.front(nbits_sum);
+
     adder add_op{.nbits_v = static_cast<int>(nbits_val)};
     reflect_uniform diffuse_op{};
     oracle oracle_op{.target_state = sum};
@@ -276,20 +283,19 @@ struct run_alg {
     int n_iter = (0.785398) * sqrt(pow(2, nbits_val)*(pow(2, nbits_val))/sum);
     for (int i = 0; i < n_iter; i++) {
       // 3. Add our value registers
-      add_op(v_reg.front(nbits_val), v_reg.back(nbits_val), c_reg);
+      add_op(val1_reg, val2_reg, output_reg);
 
       // 4. Use oracle to mark our search val
-      oracle_op(c_reg, tgt);
+      oracle_op(output_reg, tgt.front(1));
 
       // 5. Undo our addition
-      cudaq::adjoint(add_op, v_reg.front(nbits_val), v_reg.back(nbits_val), c_reg);
+      cudaq::adjoint(add_op, val1_reg, val2_reg, output_reg);
 
       // 6. Inversion about the mean to find the right inputs
-      diffuse_op(v_reg, tgt); 
+      diffuse_op(v_reg.front(2*nbits_val), tgt.front(1)); 
     }
 
     // 7. Measure
-    // Sum is {c_reg[0], v_reg2}
     mz(v_reg, c_reg);
   }
 };
@@ -320,7 +326,7 @@ int main(int argc, char *argv[]) {
   // GENERATE AND RUN CIRCUIT
   auto start = std::chrono::high_resolution_clock::now(); // Timer start
 
-  int n_shots = 2000; // Get a lot of samples
+  int n_shots = 2000;
   auto counts = cudaq::sample(n_shots, run_alg{}, search_sum);
 
   auto end = std::chrono::high_resolution_clock::now(); // Timer end
@@ -333,11 +339,12 @@ int main(int argc, char *argv[]) {
   std::vector<std::tuple<std::string, size_t>> results = sort_map_by_value_descending(counts.to_map());
   size_t total_correct = 0;
   long n_printed = results.size();
-  int i = 0;
   if (argc >= 3) {
     n_printed = strtol(argv[2], nullptr, 10);
   }
-  for (const auto& item : results) {
+  printf("\nMeasured values:\n");
+  for (size_t i = 0; i < results.size(); ++i) {
+    std::tuple<std::string, size_t> item = results[i];
     // Binary result string
     std::string result = std::get<0>(item);
     // Count of this outcome being measured
@@ -354,10 +361,7 @@ int main(int argc, char *argv[]) {
     if (i < n_printed) {
       printf("%d + %d = %d (%.2f%%)\n", bin_to_int(val1_out), bin_to_int(val2_out), 
               bin_to_int(val1_out) + bin_to_int(val2_out), (float) 100 * count / n_shots);
-      // printf("Val1: %d (%s)\n", bin_to_int(val1_out), val1_out.c_str());
-      // printf("Val2: %d (%s)\n", bin_to_int(val2_out), val2_out.c_str());
     }
-    i++;
   }
   if (n_printed < results.size()) {
     printf("More results hidden...\n");

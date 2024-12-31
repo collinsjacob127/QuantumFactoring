@@ -1,6 +1,7 @@
 /**********************************
  * Description: Using Grover's search to find integer 
  *              components that multiply to a given product.
+ * Note: Final attempt, just 1:1 matching the paper, now.
  * Author: Jacob Collins
  * Citations:
  * QFT Arithmetic: https://arxiv.org/pdf/1411.5949
@@ -126,7 +127,6 @@ __qpu__ void setInt(const long val, cudaq::qview<> qs) {
 }
 
 // Inversion about the mean
-// TODO: Does this need to match the diagram? RY(pi/2)?
 struct Diffusor {
   void operator()(cudaq::qview<> ctrl, cudaq::qview<> tgt) __qpu__ {
     for (int i = 0; i < ctrl.size(); ++i) {
@@ -213,6 +213,7 @@ struct oracle {
 *************** DRIVER & MAIN ***************
 *********************************************/
 
+// Based largely on this design: https://arxiv.org/pdf/2312.10054
 struct QuantumFactorization {
   __qpu__ auto operator()(const long N, int nbits_x, int nbits_y, int nbits_z, int n_grov_iter) {
     // 1. Initialize Registers
@@ -256,7 +257,6 @@ struct QuantumFactorization {
     }
 
     // 7. Measure
-    // Sum is {c_reg[0], v_reg2}
     mz(v_reg, c_reg);
   }
 };
@@ -329,9 +329,9 @@ long displayFullResults(std::vector<std::tuple<std::string, size_t>> results, lo
 long calculateSemiPrimes(long N) {
   if (N % 3 == 0 || N % 2 == 0) return -1;
   // Necessary # bits computed based on input. Min 1.
-  int nbits_z = ceil(log2(max(std::vector<long>({N, 1}))));
   int nbits_y = ceil(log2(max(std::vector<long>({N/3, 1}))));
   int nbits_x = nbits_y;
+  int nbits_z = nbits_x + nbits_y + 3;
   int nbits_vals = nbits_x + nbits_y;
   int nbits_total = nbits_vals + nbits_z;
   printf("Finding factors of: %ld (%s)\n", N, binStr(N, nbits_z).c_str());
@@ -357,6 +357,11 @@ long calculateSemiPrimes(long N) {
 }
 
 int main() {
-  calculateSemiPrimes(49);
+  long N = 1;
+  while (N % 3 == 0 || N % 2 == 0 || N <= 3) {
+    printf("Provide the number to factor: ");
+    std::cin >> N;
+  }
+  calculateSemiPrimes(N);
   return 1;
 }
