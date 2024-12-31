@@ -125,17 +125,6 @@ struct ScaledAdder {
     const int nbits_z = z_reg.size();
     int j;
     double phase;
-
-    // for (int y_ind = nbits_y-1; y_ind >= 0; --y_ind) {
-    //   for (int z_ind = nbits_z-1; z_ind >= y_ind; --z_ind) {
-    //     j = -(z_ind - y_ind - (nbits_z - nbits_y));
-    //     // phase = (double) c * M_PI / (double) pow(2, j);
-    //     phase = c * M_PI / pow(2, j);
-    //     if (DEBUG) { printf("Phase: %lf\n  y_i: %d\n  z_i: %d\n  j: %d\n",
-    //     phase, y_ind, z_ind, j); } r1<cudaq::ctrl>(phase, y_reg[y_ind],
-    //     z_reg[z_ind]);
-    //   }
-    // }
     for (int y_ind = 0; y_ind < nbits_y; ++y_ind) {
       for (int z_ind = y_ind; z_ind < nbits_z; ++z_ind) {
         j = z_ind - y_ind;
@@ -167,7 +156,6 @@ struct run_adder {
 
       // 2. Add
       add_op(y_reg, z_reg, c);
-      cudaq::adjoint<>(add_op, y_reg, z_reg, c);
 
       // 4. IQFT
       cudaq::adjoint<>(quantumFourierTransform, z_reg);
