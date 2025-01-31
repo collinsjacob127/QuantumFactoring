@@ -21,4 +21,4 @@ default: QFT_factor
 .PHONY: default clean
 
 clean:
-	rm -f *.o
+	rm -f *.o *.tmp *.x
