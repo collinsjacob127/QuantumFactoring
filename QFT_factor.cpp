@@ -21,6 +21,7 @@
 #define ENABLE_DEBUG true
 #define NUMBER_OF_SHOTS 2000
 
+
 /**************************************************
 ******************* HELPER FUNCS ******************
 ***************************************************/
@@ -130,11 +131,11 @@ __qpu__ void setInt(const long val, cudaq::qview<> qs) {
 struct Diffusor {
   void operator()(cudaq::qview<> ctrl, cudaq::qview<> tgt) __qpu__ {
     for (int i = 0; i < ctrl.size(); ++i) {
-      ry(std::numbers::pi / 2, ctrl[i]);
+      ry(M_PI / 2, ctrl[i]);
     }
     z<cudaq::ctrl>(ctrl, tgt[0]);
     for (int i = 0; i < ctrl.size(); ++i) {
-      ry(-std::numbers::pi / 2, ctrl[i]);
+      ry(-M_PI / 2, ctrl[i]);
     }
   }
 };
@@ -145,7 +146,7 @@ __qpu__ void quantumFourierTransform(cudaq::qview<> qs) {
   for (int i = 0; i < nbits; ++i) {
     h(qs[i]);
     for (int j = i + 1; j < nbits; ++j) {
-      phase = (2 * std::numbers::pi) / pow(2, j - i + 1);
+      phase = (2 * M_PI) / pow(2, j - i + 1);
       cr1(phase, qs[j], qs[i]);
     }
   }
@@ -161,7 +162,7 @@ struct ScaledAdder {
       for (int z_ind = y_ind; z_ind < nbits_z; ++z_ind) {
         j = z_ind - y_ind;
         // phase = pow((double) c * M_PI / 2, j);
-        phase = c * std::numbers::pi / pow(2, j);
+        phase = c * M_PI / pow(2, j);
         // if (ENABLE_DEBUG) { printf("Phase: %lf\n  y_i: %d\n  z_i: %d\n  j: %d\n", phase, y_ind, z_ind, j); }
         cr1(phase, y_reg[y_ind], z_reg[z_ind]);
         // r1<cudaq::ctrl>(phase, y_reg[y_ind], z_reg[z_ind]);
@@ -336,7 +337,7 @@ long calculateSemiPrimes(long N) {
   int nbits_total = nbits_vals + nbits_z;
   printf("Finding factors of: %ld (%s)\n", N, binStr(N, nbits_z).c_str());
   printf("Using %d simulated qubits.\n", nbits_total);
-  int n_grov_iter = floor((std::numbers::pi / 4) * pow(2, (nbits_x+nbits_y)/2));
+  int n_grov_iter = floor((M_PI / 4) * pow(2, (nbits_x+nbits_y)/2));
   printf("Grover's requires %d iterations in this case.\n", n_grov_iter);
 
   // GENERATE AND RUN CIRCUIT
@@ -357,10 +358,15 @@ long calculateSemiPrimes(long N) {
 }
 
 int main() {
+  std::string input;
   long N = 1;
-  while (N % 3 == 0 || N % 2 == 0 || N <= 3) {
+  while (true) {
     printf("Provide the number to factor: ");
-    std::cin >> N;
+    std::cin >> input;
+    N = atoi(input.c_str());
+    if (N % 3 == 0 || N % 2 == 0 || N <= 3) {
+        printf("Invalid input, number must be >=3 and cannot be divisible by 3 or 2\n  N/2=%f\n  N/3=%f\n", (float)N/2, (float)N/3);
+    } else { break; }
   }
   calculateSemiPrimes(N);
   return 1;
