@@ -1,4 +1,4 @@
-# Quantum Research Summary
+# Repo Summary
 
 This repo is for CSU Chico students researching various quantum computing algorithms.
 
@@ -36,8 +36,8 @@ sudo -E bash install_cuda_quantum*.$(uname -m) --accept
 It is recommended to connect your github account with SSH: [Instructions here](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account)
 
 ```{sh}
-git clone git@github.com:collinsjacob127/quantum-research.git && \
-cd quantum-research && \
+git clone git@github.com:collinsjacob127/QuantumFactoring.git && \
+cd QuantumFactoring && \
 make test-install && \
 ./test-install.x
 ```
