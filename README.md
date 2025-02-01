@@ -1,6 +1,12 @@
-# CudaQ Environment
+# Quantum Research Summary
 
-## Option 1: cscigpu (Recommended)
+This repo is for CSU Chico students researching various quantum computing algorithms.
+
+Code is written using [CUDA-Q C++](https://nvidia.github.io/cuda-quantum/latest/index.html).
+
+## CudaQ Environment
+
+### Option 1: cscigpu (Recommended)
 
 The cscigpu server `<user>@cscigpu.csuchico.edu` already has CudaQ for C++ and Python installed.
 
@@ -10,7 +16,7 @@ ssh <user>@cscigpu.csuchico.edu
 ```
 Now you can move on to the [setup](#setup) section.
 
-## Option 2: Local Installation
+### Option 2: Local Installation
 
 Based on instructions provided in the [CudaQ Documentation](https://nvidia.github.io/cuda-quantum/latest/using/quick_start.html#install-cuda-q)
 
@@ -25,7 +31,7 @@ sudo -E bash install_cuda_quantum*.$(uname -m) --accept
 . /etc/profile
 ```
 
-# Setup
+## Setup
 
 It is recommended to connect your github account with SSH: [Instructions here](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account)
 
