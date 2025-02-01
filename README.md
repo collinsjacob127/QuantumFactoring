@@ -10,7 +10,7 @@ Code is written using [CUDA-Q C++](https://nvidia.github.io/cuda-quantum/latest/
 
 The cscigpu server `<user>@cscigpu.csuchico.edu` already has CudaQ for C++ and Python installed.
 
-To access, first make sure you are connected through the CSU Chico GlobalProtect VPN, then run:
+To access, first make sure you are connected through the [CSU Chico GlobalProtect VPN](https://support.csuchico.edu/TDClient/1984/Portal/KB/?CategoryID=15690), then run:
 ```
 ssh <user>@cscigpu.csuchico.edu
 ```
