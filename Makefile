@@ -4,7 +4,8 @@ CXXFLAGS = -Wall
 LDLIBS = 
 CC = nvcc
 CXX = nvq++
-NVQFLAGS = --library-mode --target nvidia
+# NVQFLAGS = --target nvidia
+NVQFLAGS = 
 
 default: QFT_factor
 

@@ -12,6 +12,7 @@
  **********************************/
 #include <cudaq.h>
 #include <math.h>
+#include <numbers>
 
 #include <algorithm>
 #include <chrono>
