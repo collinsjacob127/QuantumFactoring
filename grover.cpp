@@ -112,17 +112,25 @@ std::string arrayToString(std::vector<T> arr, bool binary, int nbits) {
 
 int main(int argc, char *argv[]) {
   // Set up the list of values to search through
-  std::vector<long> search_vals = {7, 4, 2, 9, 10};
+  std::vector<long> search_vals = {7, 4, 2, 9, 10, 3, 15, 2, 5};
   std::vector<long> index_vals(search_vals.size());
   std::iota(index_vals.begin(), index_vals.end(), 0);
+  long secret;
 
   // Set up value to search for, secret defaults to 3
-  auto secret = 1 < argc ? strtol(argv[1], NULL, 2) : 0b1010;
+  printf("Usage: ./grover.x [search value]\n\n");
+  if (argc >= 2) {
+    secret = strtol(argv[1], NULL, 10);
+  } else {
+    secret = 9;
+  }
   int nbits_val = ceil(log2(max(std::vector<long>({max(search_vals), secret})) + 1));
   int nbits_index = ceil(log2(search_vals.size()));
   int nbits = ceil(log2(secret+1));
 
   // Helpful output
+  std::cout << "Search vals: " << arrayToString(search_vals, false, nbits_val) << std::endl;
+  std::cout << "Index vals: " << arrayToString(index_vals, false, nbits_index) << std::endl;
   std::cout << "Search vals: " << arrayToString(search_vals, true, nbits_val) << std::endl;
   std::cout << "Index vals: " << arrayToString(index_vals, true, nbits_index) << std::endl;
   printf("Secret: %ld (%s)\n", secret, bin_str(secret, nbits).c_str());
@@ -131,5 +139,6 @@ int main(int argc, char *argv[]) {
   // Generate Circuits and run
   oracle compute_oracle{.target_state = secret, .arr = search_vals};
   auto counts = cudaq::sample(run_grover{}, nbits, compute_oracle);
-  printf("Found string %s\n", counts.most_probable().c_str());
+  std::string result = counts.most_probable();
+  printf("Found string %s (%ld)\n", result.c_str(), strtol(result.c_str(), NULL, 2));
 }
