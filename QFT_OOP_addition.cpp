@@ -18,6 +18,7 @@
 // # define M_PIl          3.141592653589793238462643383279502884L /* pi */
 
 #define ENABLE_DEBUG true
+#define ENABLE_MISC_DEBUG false
 #define ENABLE_CIRCUIT_FIG true
 #define ENABLE_STATEVECTOR false
 #define NUMBER_OF_SHOTS 3
@@ -80,7 +81,7 @@ std::string bin_str(T val, int nbits, bool qorder=true) {
   if (qorder) {
     for (int i = nbits; i >= 1; --i) {
       // Shift through the bits in val
-      auto target_bit_set = (1 << (nbits - i)) & val;
+      auto target_bit_set = (1 << (nbits-1)) & val;
       // Add matching val to string
       if (target_bit_set) {
         ss << '1';
@@ -121,7 +122,7 @@ int bin_to_int(std::string &s, bool qorder=true) {
   int len = s.length();
   if (qorder) {
     for (int i = len-1; i >= 0; --i) {
-      if (s[i] == '1') {
+      if (s[(len-1)-i] == '1') {
         result += pow(2, i);
       }
     }
@@ -142,10 +143,10 @@ int bin_to_int(std::string &s, bool qorder=true) {
 __qpu__ void setInt(const long val, cudaq::qview<> qs, bool qorder=true) {
   if (qorder) {
     // Iterate through bits in val
-    for (int i = qs.size(); i >= 1; --i) {
+    for (int i = 1; i <= qs.size(); ++i) {
       // Bit-shift for single bitwise AND to apply X on correct qubits
       auto target_bit_set = (1 << (qs.size() - i)) & val;
-      if (target_bit_set) x(qs[qs.size() - i]);
+      if (target_bit_set) x(qs[i-1]);
     }
   } else {
     // Iterate through bits in val
@@ -169,7 +170,7 @@ __qpu__ void quantumFourierTransform(cudaq::qview<> qs) {
   for (int i = 0; i < shift_len; ++i) {
     idx = i+2;
     shifts[i] = (double) 2 * std::numbers::pi * pow(2, -idx); 
-    if (ENABLE_DEBUG) { printf("QFT PHASE %d: %lf\n", i, shifts[i]); }
+    if (ENABLE_MISC_DEBUG) { printf("QFT PHASE %d: %lf\n", i, shifts[i]); }
   }
   // Apply phase shifts
   for (int i = 0; i < nbits; ++i) {
@@ -190,7 +191,7 @@ __qpu__ void addKFourier(cudaq::qview<> qs, const int k) {
   const int nbits = qs.size();
   double phase; 
   // Apply phase shifts
-  for (int j = nbits-1; j >= 0; --j) {
+  for (int j = 0; j < nbits; ++j) {
     phase = (double) k * std::numbers::pi * pow(2, -j);
     rz(phase, qs[j]);
   }
@@ -233,14 +234,14 @@ struct runAdder {
     cudaq::qview z_reg = q_reg.back(nbits_z);  // Value 2 reg
     setInt(x, x_reg);
     setInt(y, y_reg);
-    setInt(2, z_reg);
+    // setInt(2, z_reg);
 
     // 2. QFT
     quantumFourierTransform(z_reg);
 
     // 2. Add
-    // add_op(x_reg, y_reg, z_reg);
-    addKFourier(z_reg, 11);
+    add_op(x_reg, y_reg, z_reg);
+    // addKFourier(z_reg, 11);
 
     // cudaq::adjoint(add_op, y_reg, z_reg, c);
 
