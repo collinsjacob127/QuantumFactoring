@@ -1,16 +1,9 @@
 /**********************************
  * Description: Example Adder using CudaQ
  * Author: Jacob Collins
- * Instructions:
- *   Compile and run with:
- *   ```
- *   $> make add
- *   $> ./add # Uses default values
- *   OR
- *   $> ./add 00101 11101 # Takes binary input
- *   ```
  **********************************/
 #include <cudaq.h>
+#include <cudaq/algorithms/draw.h>
 #include <cmath>
 #include <iostream>
 #include <sstream>
@@ -175,9 +168,10 @@ int main(int argc, char *argv[]) {
   // Values to add, optionally passed in cmdline
   long val1 = 0b1000;
   long val2 = 0b0100;
+  printf("Usage: ./basic_addition.x [num 1] [num 2]\n");
   if (argc >= 3) {
-    val1 = strtol(argv[1], nullptr, 2);
-    val2 = strtol(argv[2], nullptr, 2);
+    val1 = strtol(argv[1], nullptr, 10);
+    val2 = strtol(argv[2], nullptr, 10);
   }
   // Necessary # bits computed based on input values. Min 1.
   int nbits_val = ceil(log2(max(std::vector<long>({val1, val2, 1})) + 1));
@@ -189,6 +183,8 @@ int main(int argc, char *argv[]) {
   auto start = std::chrono::high_resolution_clock::now();
 
   auto counts = cudaq::sample(run_adder{}, val1, val2);
+  // https://nvidia.github.io/cuda-quantum/latest/api/languages/cpp_api.html#_CPPv4I0DpEN5cudaq9get_stateEDaRR13QuantumKernelDpRR4Args
+  std::cout << cudaq::draw(run_adder{}, val1, val2);
 
   auto end = std::chrono::high_resolution_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();

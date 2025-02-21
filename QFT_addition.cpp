@@ -21,104 +21,15 @@
 #include <sstream>
 #include <string>
 #include <vector>
+
+#include "helpers.h"
 // # define M_PIl          3.141592653589793238462643383279502884L /* pi */
 
 #define ENABLE_DEBUG true
 #define NUMBER_OF_SHOTS 2000
 
-/****************** HELPER FUNCS ******************/
-// Convert some value to a string
-template <typename T>
-std::string toString(T value) {
-  std::stringstream ss;
-  ss << value;
-  return ss.str();
-}
-
-// Convert nanoseconds to a string displaying subdivisions of time
-std::string formatTime(long long nanoseconds) {
-  long long milliseconds = nanoseconds / 1'000'000;  // From ns to ms
-  long long seconds = milliseconds / 1'000;          // From ms to seconds
-  milliseconds = milliseconds % 1'000;               // Remaining milliseconds
-
-  long long remaining_nanoseconds =
-      nanoseconds % 1'000'000;  // Remaining nanoseconds
-  long long microseconds = remaining_nanoseconds / 1'000;  // From ns to µs
-  remaining_nanoseconds = remaining_nanoseconds % 1'000;   // Remaining ns
-
-  // Create the formatted string
-  return toString(seconds) + "s " + toString(milliseconds) + "ms " +
-         toString(microseconds) + "µs " + toString(remaining_nanoseconds) +
-         "ns";
-}
-
-// Convert an unordered_map to a sorted vector of tuples.
-// ( The unordered map is the result of cudaq::sample() )
-std::vector<std::tuple<std::string, size_t>> sortMap(const std::unordered_map<std::string, size_t>& myMap) {
-    // Create a vector of tuples from the unordered_map
-    std::vector<std::tuple<std::string, size_t>> vec;
-    for (const auto& pair : myMap) {
-        vec.emplace_back(pair.first, pair.second);
-    }
-
-    // Sort the vector in descending order based on the size_t value
-    std::sort(vec.begin(), vec.end(), [](const auto& a, const auto& b) {
-        return std::get<1>(a) > std::get<1>(b); // Compare the size_t values
-    });
-
-    return vec;
-}
-
-// Convert value to binary string
-template <typename T>
-std::string binStr(T val, int nbits, bool reversed=true) {
-  std::stringstream ss;
-  for (int i = 1; i <= nbits; ++i) {
-    // Shift through the bits in val
-    auto target_bit_set = (1 << (nbits - i)) & val;
-    // Add matching val to string
-    if (target_bit_set) {
-      ss << '1';
-    } else {
-      ss << '0';
-    }
-  }
-  std::string out_str = ss.str();
-  if (reversed) {
-    std::reverse(out_str.begin(), out_str.end());
-  }
-  return out_str;
-}
-
-// Return max value in an array
-template <typename T>
-T max(std::vector<T> arr) {
-  T max = arr[0];
-  for (auto &v : arr) {
-    if (v > max) {
-      max = v;
-    }
-  }
-  return max;
-}
-
-// Convert bin string to int. 1101 -> 13
-int binToInt(std::string &s, bool reverse = true) {
-  int result = 0;
-  int len = s.length();
-  if (reverse) {
-    std::reverse(s.begin(), s.end());
-  }
-  for (int i = len - 1; i >= 0; --i) {
-    if (s[i] == '1') {
-      result += pow(2, len - 1 - i);
-    }
-  }
-  return result;
-}
 
 /****************** CUDAQ FUNCS ******************/
-
 // Apply NOT-gates in accordance with bit-pattern of given integer.
 // Bit-order is reversed. i.e. 3 (00011) would be (11000)
 __qpu__ void setInt(const long val, cudaq::qview<> qs) {
@@ -138,7 +49,7 @@ __qpu__ void quantumFourierTransform(cudaq::qview<> qs) {
   for (int i = 0; i < nbits; ++i) {
     h(qs[i]);
     for (int j = i + 1; j < nbits; ++j) {
-      phase = (2 * std::numbers::pi) / pow(2, 1 + j - i);
+      phase = (2 * std::numbers::pi) / pow(2, j - i + 1);
       cr1(phase, qs[j], qs[i]);
     }
   }

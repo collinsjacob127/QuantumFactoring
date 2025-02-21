@@ -303,15 +303,10 @@ struct run_alg {
 int main(int argc, char *argv[]) {
   // PARSE INPUT VALUES
   // Default search value
+  printf("Usage: ./inverse_add.x [number to invert]\n");
   long search_sum = 0b1111;
   if (argc >= 2) {
-    if (is_binary((std::string) argv[1])) {
-      search_sum = strtol(argv[1], nullptr, 2);
-    } else if (is_numeric((std::string) argv[1])) {
-      search_sum = strtol(argv[1], nullptr, 10);
-    } else {
-      printf("Search value must be given as binary or decimal\n");
-    }
+    search_sum = strtol(argv[1], nullptr, 10);
   } else {
     printf("A number to find sum components of may be passed as an argument in decimal or binary\n");
   }

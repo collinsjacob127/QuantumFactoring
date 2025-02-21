@@ -19,7 +19,7 @@
 #include <algorithm> // sort
 #include <chrono> // Timer
 
-#include "fractionizer.h" // Temporary CF solution
+// #include "fractionizer.h" // Temporary CF solution
 
 /****************** HELPER FUNCS ******************/
 // Convert value to binary string

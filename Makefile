@@ -1,25 +1,32 @@
 # Makefile for CudaQ
-CFLAGS = -Wall -g
-CXXFLAGS = -Wall
-LDLIBS = 
-CC = nvcc
-CXX = nvq++
-# NVQFLAGS = --target nvidia
-NVQFLAGS = 
+CFLAGS     = -Wall -g
+CXXFLAGS   = -Wall
+LDLIBS     =
+CC         = nvcc
+CXX        = nvq++
+NVQFLAGS   = --target nvidia
+# NVQFLAGS = 
 
-default: QFT_factor
+# PRODUCT = test-install inverse_add basic_addition QFT_addition QFT_factor QFT_multiplication sp_factorization grover QFT_scaled_addition
+PRODUCT = test-install inverse_add basic_addition 
 
-# PRODUCT = QFT_addition QFT_factor QFT_multiplication sp_factorization test-install inverse_add basic_addition groveer shors QFT_scaled_addition
+.PHONY: all clean
 
-# make <filename>.o
+# List C++ source files (assumed to have the .cpp extension).
+CPPFILES := $(wildcard *.cpp)
+
+# Default rule: build all products (.x executables)
+all: $(PRODUCT:%=%.x)
+# all: $(CPPFILES:%=%.x)
+
+# Rule: compile non-header (.cpp) files directly to executables,
+# linking with the header object files
 %.x: %.cpp
 	$(CXX) $(CXXFLAGS) $< -o $@ $(NVQFLAGS)
-    
-# make <filename> == make <filename>.x
+
 %: %.cpp
 	$(CXX) $(CXXFLAGS) $< -o $@.x $(NVQFLAGS)
 
-.PHONY: default clean
-
+# Clean up generated files
 clean:
-	rm -f *.o *.tmp *.x
+	rm -f *.o *.x
