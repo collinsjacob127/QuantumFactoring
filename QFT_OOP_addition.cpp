@@ -18,6 +18,8 @@
 // # define M_PIl          3.141592653589793238462643383279502884L /* pi */
 
 #define ENABLE_DEBUG true
+#define ENABLE_CIRCUIT_FIG true
+#define ENABLE_STATEVECTOR false
 #define NUMBER_OF_SHOTS 3
 
 /**************************************************
@@ -182,23 +184,39 @@ __qpu__ void quantumFourierTransform(cudaq::qview<> qs) {
   }
 }
 
+// Add an increment of k*pi/2^j across this register
+// NEARLY working - adds in reverse bit order :(
+__qpu__ void addKFourier(cudaq::qview<> qs, const int k) {
+  const int nbits = qs.size();
+  double phase; 
+  // Apply phase shifts
+  for (int j = nbits-1; j >= 0; --j) {
+    phase = (double) k * std::numbers::pi * pow(2, -j);
+    rz(phase, qs[j]);
+  }
+}
+
 // Based on pennylane.ai implementation
 // https://pennylane.ai/qml/demos/tutorial_qft_arithmetics
 struct QFTAdder {
   void operator()(cudaq::qview<> x_reg, cudaq::qview<> y_reg, cudaq::qview<> z_reg) __qpu__ {
     const int nbits_y = y_reg.size();
     const int nbits_z = z_reg.size();
-    double lambda;
-    for (int j = 0; j < nbits_y; ++j) {
-      for (int k = 0; k < nbits_y-j; ++k) {
-        lambda = std::numbers::pi / pow(2, k);
-        rz<cudaq::ctrl>(lambda, y_reg[j], z_reg[j+k]);
-      }
+    int k;
+
+    // Add x
+    for (int i = 0; i < nbits_y; ++i) {
+      k = (pow(2, nbits_y - (i + 1)));
+      // https://nvidia.github.io/cuda-quantum/latest/specification/cudaq/synthesis.html
+      cudaq::control(addKFourier, x_reg[i], z_reg, k);
     }
-    for (int j = 0; j < nbits_y; ++j) {
-      lambda = std::numbers::pi / pow(2, j);
-      rz<cudaq::ctrl>(lambda, y_reg[nbits_y - (j - 1)], z_reg[nbits_y]);
+
+    // Add y
+    for (int i = 0; i < nbits_y; ++i) {
+      k = (pow(2, nbits_y - (i + 1)));
+      cudaq::control(addKFourier, y_reg[i], z_reg, k);
     }
+
   }
 };
 
@@ -215,20 +233,22 @@ struct runAdder {
     cudaq::qview z_reg = q_reg.back(nbits_z);  // Value 2 reg
     setInt(x, x_reg);
     setInt(y, y_reg);
-    // setInt(4, z_reg);
+    setInt(2, z_reg);
 
     // 2. QFT
     quantumFourierTransform(z_reg);
 
     // 2. Add
     // add_op(x_reg, y_reg, z_reg);
+    addKFourier(z_reg, 11);
+
     // cudaq::adjoint(add_op, y_reg, z_reg, c);
 
     // 4. IQFT
-    // cudaq::adjoint(quantumFourierTransform, z_reg);
+    cudaq::adjoint(quantumFourierTransform, z_reg);
 
     // 3. Measure
-    // mz(q_reg);
+    mz(q_reg);
   }
 };
 
@@ -244,7 +264,7 @@ void display_full_results(std::vector<std::tuple<std::string, size_t>> results, 
     // Parse
     std::string x_out = result.substr(0, nbits_x);
     std::string y_out = result.substr(nbits_x, nbits_y);
-    std::string z_out = result.substr(nbits_y, nbits_z);
+    std::string z_out = result.substr(nbits_y+nbits_x, nbits_z);
     int x_val = bin_to_int(x_out);
     int y_val = bin_to_int(y_out);
     int z_val = bin_to_int(z_out);
@@ -287,9 +307,12 @@ void run_QFT_adder(long x, long y) {
          bin_str(y, nbits_y).c_str(), bin_str(z, nbits_z).c_str());
 
   // Draw circuit and view statevector
-  std::cout << cudaq::draw(runAdder{}, x, y, nbits_x, nbits_y, nbits_z);
-  auto state = cudaq::get_state(runAdder{}, x, y, nbits_x, nbits_y, nbits_z);
-  state.dump();
+  if (ENABLE_CIRCUIT_FIG)
+    std::cout << cudaq::draw(runAdder{}, x, y, nbits_x, nbits_y, nbits_z);
+  if (ENABLE_STATEVECTOR) {
+    auto state = cudaq::get_state(runAdder{}, x, y, nbits_x, nbits_y, nbits_z);
+    state.dump();
+  }
   
   // GENERATE AND RUN CIRCUIT
   auto start = std::chrono::high_resolution_clock::now();
@@ -303,7 +326,7 @@ void run_QFT_adder(long x, long y) {
   printf("\nAdder finished in %s.\n", format_time(duration).c_str());
   std::vector<std::tuple<std::string, size_t>> results = sort_map(counts.to_map());
   printf("\nMEASURED RESULTS\n");
-  display_full_results(results, x, y, nbits_x, nbits_y, nbits_z, 10);
+  display_full_results(results, x, y, nbits_x, nbits_y, nbits_z, 5);
   printf("\n");
   // // REVIEW RESULTS
   // std::string result = counts.most_probable();
