@@ -307,9 +307,8 @@ int main(int argc, char *argv[]) {
   long search_sum = 0b1111;
   if (argc >= 2) {
     search_sum = strtol(argv[1], nullptr, 10);
-  } else {
-    printf("A number to find sum components of may be passed as an argument in decimal or binary\n");
   }
+
   // Necessary # bits computed based on input. Min 1.
   int nbits = ceil(log2(max(std::vector<long>({search_sum, 1})) + 1));
   printf("Finding sum components of: %ld (%s)\n", 
