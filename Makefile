@@ -8,7 +8,7 @@ NVQFLAGS   = --target nvidia
 # NVQFLAGS = 
 
 # PRODUCT = test-install inverse_add basic_addition QFT_addition QFT_factor QFT_multiplication sp_factorization grover QFT_scaled_addition
-PRODUCT = test-install inverse_add basic_addition 
+PRODUCT = test-install inverse_add basic_addition QFT_addition QFT_exploration
 
 .PHONY: all clean
 

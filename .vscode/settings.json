@@ -1,3 +1,7 @@
 {
-    "C_Cpp.default.compilerPath": "/opt/nvidia/cudaq/bin/nvq++"
+    "C_Cpp.default.compilerPath": "/opt/nvidia/cudaq/bin/nvq++",
+    "files.associations": {
+        "*.cpp": "cpp",
+        "numbers": "cpp"
+    }
 }
