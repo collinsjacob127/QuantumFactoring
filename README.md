@@ -4,6 +4,12 @@ This repo is for CSU Chico students researching various quantum computing algori
 
 Code is written using [CUDA-Q C++](https://nvidia.github.io/cuda-quantum/latest/index.html).
 
+## Notes
+
+`QFT_OOP_addition.cpp` is the most recent update. 
+It uses QFT-based addition to add the values in register 1 and register 2, with the output being sent to register 3. 
+This is a necessary step towards implementing QFT-based multiplication for use in semiprime factoring.
+
 ## CudaQ Environment
 
 ### Option 1: cscigpu (Recommended)

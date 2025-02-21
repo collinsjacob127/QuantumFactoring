@@ -18,8 +18,8 @@
 // # define M_PIl          3.141592653589793238462643383279502884L /* pi */
 
 #define ENABLE_DEBUG true
+#define ENABLE_CIRCUIT_FIG false
 #define ENABLE_MISC_DEBUG false
-#define ENABLE_CIRCUIT_FIG true
 #define ENABLE_STATEVECTOR false
 #define NUMBER_OF_SHOTS 3
 
@@ -81,7 +81,7 @@ std::string bin_str(T val, int nbits, bool qorder=true) {
   if (qorder) {
     for (int i = nbits; i >= 1; --i) {
       // Shift through the bits in val
-      auto target_bit_set = (1 << (nbits-1)) & val;
+      auto target_bit_set = (1 << (nbits-i)) & val;
       // Add matching val to string
       if (target_bit_set) {
         ss << '1';
@@ -202,7 +202,7 @@ __qpu__ void addKFourier(cudaq::qview<> qs, const int k) {
 struct QFTAdder {
   void operator()(cudaq::qview<> x_reg, cudaq::qview<> y_reg, cudaq::qview<> z_reg) __qpu__ {
     const int nbits_y = y_reg.size();
-    const int nbits_z = z_reg.size();
+    // const int nbits_z = z_reg.size();
     int k;
 
     // Add x
@@ -288,7 +288,7 @@ void display_full_results(std::vector<std::tuple<std::string, size_t>> results, 
     printf("More results hidden...\n");
   }
   // The percentage of results that were correct.
-  printf("%lu / %lu Correct. (%.2f%%)\n", total_correct, n_shots, (float) 100 * total_correct / n_shots);
+  printf("%lu / %lu Shots Correct. (%.2f%%)\n", total_correct, n_shots, (float) 100 * total_correct / n_shots);
 }
 
 void run_QFT_adder(long x, long y) {
