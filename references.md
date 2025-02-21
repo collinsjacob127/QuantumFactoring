@@ -6,6 +6,8 @@
 
 - [Microsoft Majorana 1](https://azure.microsoft.com/en-us/blog/quantum/2025/02/19/microsoft-unveils-majorana-1-the-worlds-first-quantum-processor-powered-by-topological-qubits/)
 
+- [Majorana Architecture Overview (Preprint)](https://arxiv.org/abs/2502.12252)
+
 ## Tutorials
 
 - [QFT SubRoutine from PennyLane Docs](https://docs.pennylane.ai/en/stable/_modules/pennylane/templates/subroutines/qft.html#QFT)
