@@ -22,11 +22,118 @@
 #include <string>
 #include <vector>
 
-#include "helpers.h"
 // # define M_PIl          3.141592653589793238462643383279502884L /* pi */
 
 #define ENABLE_DEBUG true
-#define NUMBER_OF_SHOTS 2000
+#define NUMBER_OF_SHOTS 10
+
+/**************************************************
+******************* HELPER FUNCS ******************
+***************************************************/
+
+// Convert some value to a string
+template <typename T>
+std::string to_string(T value) {
+  std::stringstream ss;
+  ss << value;
+  return ss.str();
+}
+
+// Convert nanoseconds to a string displaying subdivisions of time
+std::string format_time(long long nanoseconds) {
+  long long milliseconds = nanoseconds / 1'000'000;  // From ns to ms
+  long long seconds = milliseconds / 1'000;          // From ms to seconds
+  milliseconds = milliseconds % 1'000;               // Remaining milliseconds
+
+  long long remaining_nanoseconds =
+      nanoseconds % 1'000'000;  // Remaining nanoseconds
+  long long microseconds = remaining_nanoseconds / 1'000;  // From ns to µs
+  remaining_nanoseconds = remaining_nanoseconds % 1'000;   // Remaining ns
+
+  // Create the formatted string
+  return to_string(seconds) + "s " + to_string(milliseconds) + "ms " +
+         to_string(microseconds) + "µs " + to_string(remaining_nanoseconds) +
+         "ns";
+}
+
+// Check if a string contains only binary characters (0 || 1)
+bool is_binary(const std::string& str) {
+  for (char c : str) {
+    if (c != '0' && c != '1') {
+      return false;
+    }
+  }
+  return true;
+}
+
+// Check if a string contains only numeric characters
+bool is_numeric(const std::string& str) {
+  for (char c : str) {
+    if (!isdigit(c)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// Convert an unordered_map to a sorted vector of tuples.
+// ( The unordered map is the result of cudaq::sample() )
+std::vector<std::tuple<std::string, size_t>> sort_map_by_value_descending(const std::unordered_map<std::string, size_t>& myMap) {
+    // Create a vector of tuples from the unordered_map
+    std::vector<std::tuple<std::string, size_t>> vec;
+    for (const auto& pair : myMap) {
+        vec.emplace_back(pair.first, pair.second);
+    }
+
+    // Sort the vector in descending order based on the size_t value
+    std::sort(vec.begin(), vec.end(), [](const auto& a, const auto& b) {
+        return std::get<1>(a) > std::get<1>(b); // Compare the size_t values
+    });
+
+    return vec;
+}
+
+
+// Convert value to binary string
+template <typename T>
+std::string bin_str(T val, int nbits) {
+  std::stringstream ss;
+  for (int i = 1; i <= nbits; ++i) {
+    // Shift through the bits in val
+    auto target_bit_set = (1 << (nbits - i)) & val;
+    // Add matching val to string
+    if (target_bit_set) {
+      ss << '1';
+    } else {
+      ss << '0';
+    }
+  }
+  return ss.str();
+}
+
+// Return max value in an array
+template <typename T>
+T max(std::vector<T> arr) {
+  T max = arr[0];
+  for (auto &v : arr) {
+    if (v > max) {
+      max = v;
+    }
+  }
+  return max;
+}
+
+// Convert bin string to int. 1101 -> 13
+int bin_to_int(std::string &s) {
+  int result = 0;
+  int len = s.length();
+  for (int i = 0; i < len; ++i) {
+    if (s[i] == '1') {
+      result += pow(2, len - 1 - i);
+    }
+  }
+  return result;
+}
 
 
 /****************** CUDAQ FUNCS ******************/
@@ -49,7 +156,7 @@ __qpu__ void quantumFourierTransform(cudaq::qview<> qs) {
   for (int i = 0; i < nbits; ++i) {
     h(qs[i]);
     for (int j = i + 1; j < nbits; ++j) {
-      phase = (2 * std::numbers::pi) / pow(2, j - i + 1);
+      phase = (2 * std::numbers::pi) / pow(2, 1 + j - i);
       cr1(phase, qs[j], qs[i]);
     }
   }
@@ -196,9 +303,16 @@ void runQFTAdder(long y, long z) {
 }
 
 /****************** CUDAQ STRUCTS ******************/
-int main() {
+int main(int argc, char *argv[]) {
+  // PARSE INPUT VALUES
+  // Default search value
+  printf("Usage: ./inverse_add.x [n1 to add] [n2 to add]\n");
+  long z=1, y=2;
+  if (argc >= 3) {
+    search_sum = strtol(argv[1], nullptr, 10);
+    search_sum = strtol(argv[1], nullptr, 10);
+  }
   printf("This will attempt to use QFT to compute z + y\n");
-  long z, y;
   printf("Enter y: ");
   std::cin >> y;
   printf("Enter z: ");
