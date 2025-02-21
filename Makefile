@@ -16,8 +16,8 @@ PRODUCT = test-install inverse_add basic_addition QFT_addition QFT_exploration Q
 CPPFILES := $(wildcard *.cpp)
 
 # Default rule: build all products (.x executables)
-all: $(PRODUCT:%=%.x)
-# all: $(CPPFILES:%=%.x)
+#all: $(PRODUCT:%=%.x)
+all: $(CPPFILES:%.cpp=%.x)
 
 # Rule: compile non-header (.cpp) files directly to executables,
 # linking with the header object files
