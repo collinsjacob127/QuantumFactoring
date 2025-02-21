@@ -157,6 +157,7 @@ __qpu__ void setInt(const long val, cudaq::qview<> qs, bool qorder=true) {
 
 // Converted from qml function
 // https://docs.pennylane.ai/en/stable/_modules/pennylane/templates/subroutines/qft.html#QFT
+// ~WORKS PERFECTLY~
 __qpu__ void quantumFourierTransform(cudaq::qview<> qs) {
   const int nbits = qs.size();
   int shift_len = nbits-1;
@@ -183,7 +184,6 @@ __qpu__ void quantumFourierTransform(cudaq::qview<> qs) {
 
 // Based on pennylane.ai implementation
 // https://pennylane.ai/qml/demos/tutorial_qft_arithmetics
-// ~WORKS PERFECTLY~
 struct QFTAdder {
   void operator()(cudaq::qview<> x_reg, cudaq::qview<> y_reg, cudaq::qview<> z_reg) __qpu__ {
     const int nbits_y = y_reg.size();
@@ -218,7 +218,6 @@ struct runAdder {
     // setInt(4, z_reg);
 
     // 2. QFT
-    // for (int i = 0; i < 10; ++i) {
     quantumFourierTransform(z_reg);
 
     // 2. Add
@@ -227,7 +226,7 @@ struct runAdder {
 
     // 4. IQFT
     // cudaq::adjoint(quantumFourierTransform, z_reg);
-    // }
+
     // 3. Measure
     // mz(q_reg);
   }

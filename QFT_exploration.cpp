@@ -1,14 +1,6 @@
 /**********************************
- * Description: 
+ * Description: An out-of-place implementation of QFT addition.
  * Author: Jacob Collins
- * Instructions:
- *   Compile and run with:
- *   ```
- *   $> make QFT_addition.o
- *   $> ./QFT_addition.o 
- *   
- *  
- *   ```
  **********************************/
 #include <cudaq.h>
 #include <cudaq/algorithms/draw.h>
@@ -26,7 +18,7 @@
 // # define M_PIl          3.141592653589793238462643383279502884L /* pi */
 
 #define ENABLE_DEBUG true
-#define NUMBER_OF_SHOTS 10
+#define NUMBER_OF_SHOTS 3
 
 /**************************************************
 ******************* HELPER FUNCS ******************
@@ -62,26 +54,6 @@ std::string format_time(long long nanoseconds, bool sep=false) {
   }
 }
 
-// Check if a string contains only binary characters (0 || 1)
-bool is_binary(const std::string& str) {
-  for (char c : str) {
-    if (c != '0' && c != '1') {
-      return false;
-    }
-  }
-  return true;
-}
-
-// Check if a string contains only numeric characters
-bool is_numeric(const std::string& str) {
-  for (char c : str) {
-    if (!isdigit(c)) {
-      return false;
-    }
-  }
-  return true;
-}
-
 // Convert an unordered_map to a sorted vector of tuples.
 // ( The unordered map is the result of cudaq::sample() )
 std::vector<std::tuple<std::string, size_t>> sort_map(const std::unordered_map<std::string, size_t>& myMap) {
@@ -99,11 +71,23 @@ std::vector<std::tuple<std::string, size_t>> sort_map(const std::unordered_map<s
     return vec;
 }
 
-
 // Convert value to binary string
 template <typename T>
-std::string bin_str(T val, int nbits) {
+std::string bin_str(T val, int nbits, bool qorder=true) {
   std::stringstream ss;
+  if (qorder) {
+    for (int i = nbits; i >= 1; --i) {
+      // Shift through the bits in val
+      auto target_bit_set = (1 << (nbits - i)) & val;
+      // Add matching val to string
+      if (target_bit_set) {
+        ss << '1';
+      } else {
+        ss << '0';
+      }
+    }
+    return ss.str();
+  }
   for (int i = 1; i <= nbits; ++i) {
     // Shift through the bits in val
     auto target_bit_set = (1 << (nbits - i)) & val;
@@ -130,12 +114,20 @@ T max(std::vector<T> arr) {
 }
 
 // Convert bin string to int. 1101 -> 13
-int bin_to_int(std::string &s) {
+int bin_to_int(std::string &s, bool qorder=true) {
   int result = 0;
   int len = s.length();
+  if (qorder) {
+    for (int i = len-1; i >= 0; --i) {
+      if (s[i] == '1') {
+        result += pow(2, i);
+      }
+    }
+    return result;
+  }
   for (int i = 0; i < len; ++i) {
     if (s[i] == '1') {
-      result += pow(2, len - 1 - i);
+      result += pow(2, i);
     }
   }
   return result;
@@ -145,54 +137,67 @@ int bin_to_int(std::string &s) {
 /****************** CUDAQ FUNCS ******************/
 // Apply NOT-gates in accordance with bit-pattern of given integer.
 // Bit-order is reversed. i.e. 3 (00011) would be (11000)
-__qpu__ void setInt(const long val, cudaq::qview<> qs) {
-  // Iterate through bits in val
-  for (int i = 1; i <= qs.size(); ++i) {
-    // Bit-shift for single bitwise AND to apply X on correct qubits
-    auto target_bit_set = (1 << (qs.size() - i)) & val;
-    if (target_bit_set) x(qs[qs.size() - i]);
-  }
-}
-
-// Converted from python from cudaq docs
-// https://nvidia.github.io/cuda-quantum/latest/applications/python/quantum_fourier_transform.html#Quantum-Fourier-Transform
-__qpu__ void quantumFourierTransform(cudaq::qview<> qs) {
-  const int nbits = qs.size();
-  double phase;
-  for (int i = 0; i < nbits; ++i) {
-    h(qs[i]);
-    for (int j = i + 1; j < nbits; ++j) {
-      phase = (2 * std::numbers::pi) / pow(2, 1 + j - i);
-      cr1(phase, qs[j], qs[i]);
+__qpu__ void setInt(const long val, cudaq::qview<> qs, bool qorder=true) {
+  if (qorder) {
+    // Iterate through bits in val
+    for (int i = qs.size(); i >= 1; --i) {
+      // Bit-shift for single bitwise AND to apply X on correct qubits
+      auto target_bit_set = (1 << (qs.size() - i)) & val;
+      if (target_bit_set) x(qs[qs.size() - i]);
+    }
+  } else {
+    // Iterate through bits in val
+    for (int i = 1; i <= qs.size(); ++i) {
+      // Bit-shift for single bitwise AND to apply X on correct qubits
+      auto target_bit_set = (1 << (qs.size() - i)) & val;
+      if (target_bit_set) x(qs[qs.size() - i]);
     }
   }
 }
 
+// Converted from qml function
+// https://docs.pennylane.ai/en/stable/_modules/pennylane/templates/subroutines/qft.html#QFT
+__qpu__ void quantumFourierTransform(cudaq::qview<> qs) {
+  const int nbits = qs.size();
+  int shift_len = nbits-1;
+  double shifts[nbits-1];
+  double idx;
+  // Calculate phase shifts 
+  for (int i = 0; i < shift_len; ++i) {
+    idx = i+2;
+    shifts[i] = (double) 2 * std::numbers::pi * pow(2, -idx); 
+    if (ENABLE_DEBUG) { printf("QFT PHASE %d: %lf\n", i, shifts[i]); }
+  }
+  // Apply phase shifts
+  for (int i = 0; i < nbits; ++i) {
+    h(qs[i]);
+    for (int j = i + 1; j < nbits; ++j) {
+      cr1(shifts[j-(i+1)], qs[j], qs[i]);
+    }
+  }
+  // SWAP first half and reversed last half
+  for (int i = 0; i < nbits / 2; ++i) {
+    swap(qs[i], qs[(nbits-1)-i]);
+  }
+}
+
+// Based on pennylane.ai implementation
+// https://pennylane.ai/qml/demos/tutorial_qft_arithmetics
+// ~WORKS PERFECTLY~
 struct QFTAdder {
-  void operator()(cudaq::qview<> y_reg, cudaq::qview<> z_reg) __qpu__ {
+  void operator()(cudaq::qview<> x_reg, cudaq::qview<> y_reg, cudaq::qview<> z_reg) __qpu__ {
     const int nbits_y = y_reg.size();
     const int nbits_z = z_reg.size();
-    int exponent_term;
-    double phase;
-    for (int z_ind = nbits_z-1; z_ind >= 0; ++z_ind) {
-      for (int y_ind = 0; y_ind < nbits_y; ++y_ind) {
-        int s = y_ind + 1;
-        int j = z_ind + 1;
-        exponent_term = (nbits_y - j) - s;
-        if (exponent_term > 0) {
-          phase = 2 * std::numbers::pi / pow(2, (j + s - nbits_y));
-        } else {
-          phase = 2 * std::numbers::pi * pow(2, (nbits_y - j - s));
-          // phase = 0;
-        }
-        //TODO: This has been rewritten like 8 times and is still super wonky.
-        //      Got to re-read this: https://arxiv.org/pdf/2309.10204
-        // phase = pow((double) c * M_PI / 2, j);
-        // phase = 2 * std::numbers::pi / pow(2, j);
-        // if (ENABLE_DEBUG) { printf("Phase: %lf\n  y_i: %d\n  z_i: %d\n  j: %d\n", phase, y_ind, z_ind, j); }
-        cr1(phase, y_reg[y_ind], z_reg[z_ind]);
-        // r1<cudaq::ctrl>(phase, y_reg[y_ind], z_reg[z_ind]);
+    double lambda;
+    for (int j = 0; j < nbits_y; ++j) {
+      for (int k = 0; k < nbits_y-j; ++k) {
+        lambda = std::numbers::pi / pow(2, k);
+        rz<cudaq::ctrl>(lambda, y_reg[j], z_reg[j+k]);
       }
+    }
+    for (int j = 0; j < nbits_y; ++j) {
+      lambda = std::numbers::pi / pow(2, j);
+      rz<cudaq::ctrl>(lambda, y_reg[nbits_y - (j - 1)], z_reg[nbits_y]);
     }
   }
 };
@@ -200,33 +205,35 @@ struct QFTAdder {
 /****************** CUDAQ STRUCTS ******************/
 // Driver for adder
 struct runAdder {
-  __qpu__ auto operator()(const long y, const long z,
-                          const int nbits_y, const int nbits_z) {
+  __qpu__ auto operator()(const long x, const long y,
+                          const int nbits_x, const int nbits_y, const int nbits_z) {
     // 1. Initialize Registers
     QFTAdder add_op;
-    cudaq::qvector q_reg(nbits_y + nbits_z);  // Value 1 reg
-    // cudaq::qview y_reg = q_reg.front(nbits_y);
+    cudaq::qvector q_reg(nbits_x + nbits_y + nbits_z);  // Value 1 reg
+    cudaq::qview x_reg = q_reg.front(nbits_x);
+    cudaq::qview y_reg = q_reg.slice(nbits_x, nbits_y);
     cudaq::qview z_reg = q_reg.back(nbits_z);  // Value 2 reg
-    // setInt(y, y_reg);
-    setInt(z, z_reg);
+    setInt(x, x_reg);
+    setInt(y, y_reg);
+    // setInt(4, z_reg);
 
     // 2. QFT
     // for (int i = 0; i < 10; ++i) {
     quantumFourierTransform(z_reg);
 
     // 2. Add
-    // add_op(y_reg, z_reg);
+    // add_op(x_reg, y_reg, z_reg);
     // cudaq::adjoint(add_op, y_reg, z_reg, c);
 
     // 4. IQFT
-    cudaq::adjoint(quantumFourierTransform, z_reg);
+    // cudaq::adjoint(quantumFourierTransform, z_reg);
     // }
     // 3. Measure
     // mz(q_reg);
   }
 };
 
-void display_full_results(std::vector<std::tuple<std::string, size_t>> results, long y, long z, int nbits_y, int nbits_z, size_t n_printed=5) {
+void display_full_results(std::vector<std::tuple<std::string, size_t>> results, long x, long y, int nbits_x, int nbits_y, int nbits_z, size_t n_printed=5) {
   size_t n_shots = NUMBER_OF_SHOTS;
   size_t total_correct = 0;
   int i = 0;
@@ -236,24 +243,23 @@ void display_full_results(std::vector<std::tuple<std::string, size_t>> results, 
     // Count of this outcome being measured
     size_t count = std::get<1>(item);
     // Parse
-    std::string y_out = result.substr(0, nbits_y);
+    std::string x_out = result.substr(0, nbits_x);
+    std::string y_out = result.substr(nbits_x, nbits_y);
     std::string z_out = result.substr(nbits_y, nbits_z);
+    int x_val = bin_to_int(x_out);
     int y_val = bin_to_int(y_out);
     int z_val = bin_to_int(z_out);
     // % of whole
     if (i < n_printed) {
-      printf("%lu + %d = %d (%lu/%lu = %.2f%%)\n", z, y_val, z_val, count, n_shots, (float) 100 * count / n_shots);
+      printf("%d + %d = %d (%lu/%lu = %.2f%%)\n", x_val, y_val, z_val, count, n_shots, (float) 100 * count / n_shots);
       if (ENABLE_DEBUG) {
         printf("  Full result: %s\n", result.c_str());
-        printf("  (R1) y: %d (%s)\n", y_val, bin_str(y_val, nbits_y).c_str());
-        printf("  (R2) z+y: %d (%s)\n", z_val, bin_str(z_val, nbits_z).c_str());
+        printf("  (R1) x: %d (%s)\n", x_val, bin_str(x_val, nbits_x).c_str());
+        printf("  (R2) y: %d (%s)\n", y_val, bin_str(y_val, nbits_y).c_str());
+        printf("  (R3) z: %d (%s)\n", z_val, bin_str(z_val, nbits_z).c_str());
       }
     }
-    if (z_val == 0 || y_val == 0) {
-      i++;
-      continue;
-    }
-    if (z_val == z+y) {
+    if (z_val == x+y) {
       total_correct += count;
     }
     i++;
@@ -265,36 +271,32 @@ void display_full_results(std::vector<std::tuple<std::string, size_t>> results, 
   printf("%lu / %lu Correct. (%.2f%%)\n", total_correct, n_shots, (float) 100 * total_correct / n_shots);
 }
 
-void runQFTAdder(long y, long z) {
-  // PARSE INPUT VALUES
-  // Values to add, optionally passed in cmdline
-  // long y = 0b1000;
-  // long z = 0b0100;
-  // long c = 0b0010;
-
+void run_QFT_adder(long x, long y) {
   // Necessary # bits computed based on input values. Min 1.
-//   int nbits_y = ceil(log2(max(std::vector<long>({y, z, 1})) + 1));
-  int nbits_y = 0;
-  int nbits_z = ceil(log2(max(std::vector<long>({y, z, 1}))));
+  int nbits_x = ceil(log2(max(std::vector<long>({x, y, 1})) + 1));
+  int nbits_y = nbits_x;
+  int nbits_z = nbits_x + 1;
+  long z = x + y;
 
   printf("\nVERIFIED INPUTS\n");
-  printf("y: %ld (%s)\n", y, bin_str(y, nbits_y).c_str());
-  printf("z: %ld (%s)\n", z, bin_str(z, nbits_z).c_str());
+  printf("x: %ld (%s), nbits=%d\n", x, bin_str(x, nbits_x).c_str(), nbits_x);
+  printf("y: %ld (%s), nbits=%d\n", y, bin_str(y, nbits_y).c_str(), nbits_y);
   printf("\nEXPECTED VALUES\n");
-  printf("z+y: %ld (%s)\n", z + y, bin_str(z + y, nbits_z).c_str());
-  printf("Adding values: %ld + %ld = %ld\n", z, y, z + y);
-  printf("Expected Full Out: (%s%s)\n", bin_str(y, nbits_y).c_str(),
-         bin_str(z + y, nbits_z).c_str());
+  printf("z: %ld (%s)\n", z, bin_str(z, nbits_z).c_str());
+  printf("Adding values: %ld + %ld = %ld\n", x, y, z);
+  printf("Expected Full Out: (%s_%s_%s)\n", bin_str(x, nbits_x).c_str(),
+         bin_str(y, nbits_y).c_str(), bin_str(z, nbits_z).c_str());
 
-  std::cout << cudaq::draw(runAdder{}, y, z, nbits_y, nbits_z);
-  auto state = cudaq::get_state(runAdder{}, y, z, nbits_y, nbits_z);
+  // Draw circuit and view statevector
+  std::cout << cudaq::draw(runAdder{}, x, y, nbits_x, nbits_y, nbits_z);
+  auto state = cudaq::get_state(runAdder{}, x, y, nbits_x, nbits_y, nbits_z);
   state.dump();
-//   return;
+  
   // GENERATE AND RUN CIRCUIT
   auto start = std::chrono::high_resolution_clock::now();
 
   int n_shots = NUMBER_OF_SHOTS; // Get a lot of samples
-  auto counts = cudaq::sample(n_shots, runAdder{}, y, z, nbits_y, nbits_z);
+  auto counts = cudaq::sample(n_shots, runAdder{}, x, y, nbits_x, nbits_y, nbits_z);
 
   auto end = std::chrono::high_resolution_clock::now();
   auto duration =
@@ -302,7 +304,7 @@ void runQFTAdder(long y, long z) {
   printf("\nAdder finished in %s.\n", format_time(duration).c_str());
   std::vector<std::tuple<std::string, size_t>> results = sort_map(counts.to_map());
   printf("\nMEASURED RESULTS\n");
-  display_full_results(results, y, z, nbits_y, nbits_z, 10);
+  display_full_results(results, x, y, nbits_x, nbits_y, nbits_z, 10);
   printf("\n");
   // // REVIEW RESULTS
   // std::string result = counts.most_probable();
@@ -316,12 +318,12 @@ void runQFTAdder(long y, long z) {
 int main(int argc, char *argv[]) {
   // PARSE INPUT VALUES
   // Default search value
-  printf("Usage: ./inverse_add.x [y] [z]\n");
-  long z=1, y=2;
+  printf("Usage: ./inverse_add.x [x] [y]\n");
+  long x=1, y=2;
   if (argc >= 3) {
-    y = strtol(argv[1], nullptr, 10);
-    z = strtol(argv[2], nullptr, 10);
+    x = strtol(argv[1], nullptr, 10);
+    y = strtol(argv[2], nullptr, 10);
   }
-  printf("This will attempt to use QFT to compute y + z\n");
-  runQFTAdder(y, z);
+  printf("This will attempt to use QFT to compute x + y = z (Out-of-place).\n");
+  run_QFT_adder(x, y);
 }
