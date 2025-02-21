@@ -202,7 +202,7 @@ __qpu__ void quantumFourierTransform(cudaq::qview<> qs) {
 struct QFTAdder {
   void operator()(cudaq::qview<> y_reg, cudaq::qview<> z_reg) __qpu__ {
     const int nbits_y = y_reg.size();
-    const int nbits_z = z_reg.size();
+//    const int nbits_z = z_reg.size();
     double lambda;
     for (int j = 0; j < nbits_y; ++j) {
       for (int k = 0; k < nbits_y-j; ++k) {
