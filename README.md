@@ -12,6 +12,10 @@ This is a necessary step towards implementing QFT-based multiplication for use i
 
 ## TODO:
 
+- [x] Addition (Semiclassical)
+- [x] Grover's (Simple)
+- [ ] Grover's (Index search) ~90%
+- [x] Inverse Addition (Semiclassical)
 - [x] QFT Addition (Out of place)
 - [ ] QFT Inverse Addition (Out of place)
 - [ ] QFT Addition (In-place)
