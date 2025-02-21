@@ -12,13 +12,13 @@ This is a necessary step towards implementing QFT-based multiplication for use i
 
 ## TODO:
 
-[x] QFT Addition (Out of place)
-[ ] QFT Inverse Addition (Out of place)
-[ ] QFT Addition (In-place)
-[ ] QFT Inverse Addition (In-place)
-[ ] QFT Scaled Addition (In-place)
-[ ] QFT Multiplication
-[ ] QFT Inverse Multiplication (SP Factoring)
+- [x] QFT Addition (Out of place)
+- [ ] QFT Inverse Addition (Out of place)
+- [ ] QFT Addition (In-place)
+- [ ] QFT Inverse Addition (In-place)
+- [ ] QFT Scaled Addition (In-place)
+- [ ] QFT Multiplication
+- [ ] QFT Inverse Multiplication (SP Factoring)
 
 ## CudaQ Environment
 
