@@ -17,12 +17,15 @@ This is a necessary step towards implementing QFT-based multiplication for use i
 - [ ] Grover's (Index search) ~90%
 - [x] Inverse Addition (Semiclassical)
 - [x] QFT Addition (Out of place)
-- [ ] QFT Inverse Addition (Out of place)
+- [x] QFT Inverse Addition (Out of place)
+- [x] QFT Scaled Addition (Out of place)
+- [x] QFT Multiplication (Out of place)
+- [ ] **QFT Inverse Multiplication** (Out of place)
 - [ ] QFT Addition (In-place)
 - [ ] QFT Inverse Addition (In-place)
 - [ ] QFT Scaled Addition (In-place)
-- [ ] QFT Multiplication
-- [ ] QFT Inverse Multiplication (SP Factoring)
+- [ ] QFT Multiplication (In-place)
+- [ ] **QFT Inverse Multiplication** (In-place)
 
 ## CudaQ Environment
 
