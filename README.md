@@ -60,8 +60,8 @@ It is recommended to connect your github account with SSH: [Instructions here](h
 
 ```{sh}
 git clone git@github.com:collinsjacob127/QuantumFactoring.git && \
-cd QuantumFactoring && \
-make test-install && \
+cd QuantumFactoring/test-install && \
+make && \
 ./test-install.x
 ```
 
