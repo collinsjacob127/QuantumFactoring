@@ -329,12 +329,6 @@ void run_QFT_adder(long x, long y) {
   printf("\nMEASURED RESULTS\n");
   display_full_results(results, x, y, nbits_x, nbits_y, nbits_z, 5);
   printf("\n");
-  // // REVIEW RESULTS
-  // std::string result = counts.most_probable();
-  // printf("Full out: (%s)\n", result.c_str());
-  // std::string val2_out = result.substr(0, nbits_y);
-  // std::string sum_out = result.substr(nbits_y, nbits_z);
-  // printf("Sum: %d (%s)\n", bin_to_int(sum_out), sum_out.c_str());
 }
 
 /****************** CUDAQ STRUCTS ******************/
