@@ -1,6 +1,7 @@
 /**********************************
  * Description: 
- *      An implementation of QFT multiplication.
+ *      Using grover's algorithm to invert QFT multiplication
+ *      to achieve efficient SP factoring.
  * Author: Jacob Collins
  **********************************/
 
@@ -24,6 +25,7 @@
 #define ENABLE_MISC_DEBUG false
 #define ENABLE_STATEVECTOR false
 #define NUMBER_OF_SHOTS 100
+#define NUM_RESULTS_DISPLAYED 10
 
 /**************************************************
 ******************* HELPER FUNCS ******************
@@ -210,55 +212,108 @@ __qpu__ void addRegScaled(cudaq::qview<> y_reg, cudaq::qview<> z_reg, const int 
   }
 }
 
+// Inversion about the mean
+struct reflect_uniform {
+  void operator()(cudaq::qview<> ctrl, cudaq::qview<> tgt) __qpu__ {
+    h(ctrl);
+    x(ctrl);
+    x(tgt);
+    z<cudaq::ctrl>(ctrl, tgt[0]);
+    x(tgt);
+    x(ctrl);
+    h(ctrl);
+  }
+};
+
+/**
+ * @brief Grover's oracle to search for target_state
+ * @param ctrl - Register to search.
+ * @param tgt - Qubit on which to apply Toffoli and z-gates.
+ */
+struct oracle {
+  const long target_state;
+
+  void operator()(cudaq::qview<> ctrl, cudaq::qview<> tgt) __qpu__ {
+    // Define good search state (secret)
+    for (int i = 1; i <= ctrl.size(); ++i) {
+      auto target_bit_set = (1 << (ctrl.size() - i)) & target_state;
+      if (!target_bit_set) x(ctrl[i - 1]);
+    }
+    // Mark if found
+    x<cudaq::ctrl>(ctrl, tgt[0]);
+    z(tgt[0]);
+    x<cudaq::ctrl>(ctrl, tgt[0]);
+    // Undefine good search state
+    for (int i = 1; i <= ctrl.size(); ++i) {
+      auto target_bit_set = (1 << (ctrl.size() - i)) & target_state;
+      if (!target_bit_set) x(ctrl[i - 1]);
+    }
+  }
+};
+
 // Based on pennylane.ai implementation
-// https://pennylane.ai/qml/demos/tutorial_qft_arithmetics
 struct QFTMult {
   void operator()(cudaq::qview<> x_reg, cudaq::qview<> y_reg, cudaq::qview<> z_reg) __qpu__ {
     const int nbits_x = x_reg.size();
     // const int nbits_z = z_reg.size();
     int c;
 
+    quantumFourierTransform(z_reg);
+
     // Add y repeatedly, scaled by powers of 2 per bit in x
     for (int i = 0; i < nbits_x; ++i) {
         c = (pow(2, nbits_x - (i + 1)));
-        // https://nvidia.github.io/cuda-quantum/latest/specification/cudaq/synthesis.html
         cudaq::control(addRegScaled, x_reg[i], y_reg, z_reg, c);
     }
+
+    cudaq::adjoint(quantumFourierTransform, z_reg);
   }
 };
 
 /****************** CUDAQ STRUCTS ******************/
-// Driver for adder
-struct runAdder {
-  __qpu__ auto operator()(const long x, const long y,
+struct runFactor {
+  __qpu__ auto operator()(const long semiprime,
                           const int nbits_x, const int nbits_y, const int nbits_z) {
     // 1. Initialize Registers
     QFTMult mult_op;
+    reflect_uniform diffuse_op{};
+    oracle oracle_op{.target_state = semiprime};
     cudaq::qvector q_reg(nbits_x + nbits_y + nbits_z);  // Value 1 reg
     cudaq::qview x_reg = q_reg.front(nbits_x);
     cudaq::qview y_reg = q_reg.slice(nbits_x, nbits_y);
     cudaq::qview z_reg = q_reg.back(nbits_z);  // Value 2 reg
-    setInt(x, x_reg);
-    setInt(y, y_reg);
-    // setInt(2, z_reg);
+    cudaq::qvector tgt(1);
+    h(x_reg);
+    h(y_reg);
 
-    // 2. QFT
-    quantumFourierTransform(z_reg);
+    // ( pi / 4 ) * sqrt( N / k )
+    // N: Size of search space (2^n choose 2)
+    // k: Number of valid matching entries (assumed 4 for SP: (p1,p2), (p2,p1), (1,sp), (sp,1))
+    // int n_iter = (0.785398) * sqrt(pow(2, nbits_x) * (pow(2, nbits_x)) / 4);
+    int n_iter = (0.785398) * sqrt(pow(2, (nbits_x+nbits_y)/2));
+    for (int i = 0; i < n_iter; i++) {
+      // 2. Multiply
+      mult_op(x_reg, y_reg, z_reg);
 
-    // 2. Add
+      // 3. Grover's Oracle
+      oracle_op(z_reg, tgt.front(1));
+
+      // 4. Undo mult
+      cudaq::adjoint(mult_op, x_reg, y_reg, z_reg);
+
+      // 5. Diffusion to maximize probability
+      diffuse_op(q_reg.front(nbits_x + nbits_y), tgt.front(1));
+    }
+
+    // 2. Mult
     mult_op(x_reg, y_reg, z_reg);
-
-    // cudaq::adjoint(mult_op, y_reg, z_reg, c);
-
-    // 4. IQFT
-    cudaq::adjoint(quantumFourierTransform, z_reg);
 
     // 3. Measure
     mz(q_reg);
   }
 };
 
-void display_full_results(std::vector<std::tuple<std::string, size_t>> results, long x, long y, int nbits_x, int nbits_y, int nbits_z, size_t n_printed=5) {
+void display_full_results(std::vector<std::tuple<std::string, size_t>> results, long z, int nbits_x, int nbits_y, int nbits_z, size_t n_printed=5) {
   size_t n_shots = NUMBER_OF_SHOTS;
   size_t total_correct = 0;
   int i = 0;
@@ -276,7 +331,11 @@ void display_full_results(std::vector<std::tuple<std::string, size_t>> results, 
     int z_val = bin_to_int(z_out);
     // % of whole
     if (i < n_printed) {
-      printf("%d * %d = %d (%lu/%lu = %.2f%%)\n", x_val, y_val, z_val, count, n_shots, (float) 100 * count / n_shots);
+      if (z_val == x_val*y_val) {
+        printf("%d * %d = %d (%lu/%lu = %.2f%%) ✓ \n", x_val, y_val, z_val, count, n_shots, (float) 100 * count / n_shots);
+      } else {
+        printf("%d * %d != %d (%lu/%lu = %.2f%%) X\n", x_val, y_val, z_val, count, n_shots, (float) 100 * count / n_shots);
+      }
       if (ENABLE_DEBUG) {
         printf("  Full result: %s\n", result.c_str());
         printf("  (R1) x: %d (%s)\n", x_val, bin_str(x_val, nbits_x).c_str());
@@ -284,7 +343,7 @@ void display_full_results(std::vector<std::tuple<std::string, size_t>> results, 
         printf("  (R3) z: %d (%s)\n", z_val, bin_str(z_val, nbits_z).c_str());
       }
     }
-    if (z_val == x_val*y_val) {
+    if (z_val == x_val*y_val && z_val == z) {
       total_correct += count;
     }
     i++;
@@ -296,27 +355,20 @@ void display_full_results(std::vector<std::tuple<std::string, size_t>> results, 
   printf("%lu / %lu Shots Correct. (%.2f%%)\n", total_correct, n_shots, (float) 100 * total_correct / n_shots);
 }
 
-void run_QFT_mult(long x, long y) {
-  long z = x * y;
+void run_SP_factor(long z) {
   // Necessary # bits computed based on input values. Min 1.
-  int nbits_x = ceil(log2(max(std::vector<long>({x, y, 1})) + 1));
+  int nbits_z = ceil(log2(max(std::vector<long>({z, 1})) + 1));
+  int nbits_x = nbits_z-1;
   int nbits_y = nbits_x;
-  int nbits_z = ceil(log2(max(std::vector<long>({x, y, z, 1})) + 1));
 
   printf("\nVERIFIED INPUTS\n");
-  printf("x: %ld (%s), nbits=%d\n", x, bin_str(x, nbits_x).c_str(), nbits_x);
-  printf("y: %ld (%s), nbits=%d\n", y, bin_str(y, nbits_y).c_str(), nbits_y);
-  printf("\nEXPECTED VALUES\n");
   printf("z: %ld (%s)\n", z, bin_str(z, nbits_z).c_str());
-  printf("Multiplying values: %ld + %ld = %ld\n", x, y, z);
-  printf("Expected Full Out: (%s_%s_%s)\n", bin_str(x, nbits_x).c_str(),
-         bin_str(y, nbits_y).c_str(), bin_str(z, nbits_z).c_str());
 
   // Draw circuit and view statevector
   if (ENABLE_CIRCUIT_FIG)
-    std::cout << cudaq::draw(runAdder{}, x, y, nbits_x, nbits_y, nbits_z);
+    std::cout << cudaq::draw(runFactor{}, z, nbits_x, nbits_y, nbits_z);
   if (ENABLE_STATEVECTOR) {
-    auto state = cudaq::get_state(runAdder{}, x, y, nbits_x, nbits_y, nbits_z);
+    auto state = cudaq::get_state(runFactor{}, z, nbits_x, nbits_y, nbits_z);
     state.dump();
   }
   
@@ -324,7 +376,7 @@ void run_QFT_mult(long x, long y) {
   auto start = std::chrono::high_resolution_clock::now();
 
   int n_shots = NUMBER_OF_SHOTS; // Get a lot of samples
-  auto counts = cudaq::sample(n_shots, runAdder{}, x, y, nbits_x, nbits_y, nbits_z);
+  auto counts = cudaq::sample(n_shots, runFactor{}, z, nbits_x, nbits_y, nbits_z);
 
   auto end = std::chrono::high_resolution_clock::now();
   auto duration =
@@ -332,7 +384,7 @@ void run_QFT_mult(long x, long y) {
   printf("\nAdder finished in %s.\n", format_time(duration).c_str());
   std::vector<std::tuple<std::string, size_t>> results = sort_map(counts.to_map());
   printf("\nMEASURED RESULTS\n");
-  display_full_results(results, x, y, nbits_x, nbits_y, nbits_z, 5);
+  display_full_results(results, z, nbits_x, nbits_y, nbits_z, NUM_RESULTS_DISPLAYED);
   printf("\n");
 }
 
@@ -340,12 +392,11 @@ void run_QFT_mult(long x, long y) {
 int main(int argc, char *argv[]) {
   // PARSE INPUT VALUES
   // Default search value
-  printf("Usage: ./QFT_multiplication.x [x] [y]\n");
-  long x=3, y=5;
-  if (argc >= 3) {
-    x = strtol(argv[1], nullptr, 10);
-    y = strtol(argv[2], nullptr, 10);
+  printf("Usage: ./factor.x [z = Semiprime]\n");
+  long z = 15;
+  if (argc >= 2) {
+    z = strtol(argv[1], nullptr, 10);
   }
-  printf("This will attempt to use QFT to compute x * y = z (Out-of-place).\n");
-  run_QFT_mult(x, y);
+  printf("This will attempt to use QFT to compute ? * ? = z (Out-of-place).\n");
+  run_SP_factor(z);
 }
