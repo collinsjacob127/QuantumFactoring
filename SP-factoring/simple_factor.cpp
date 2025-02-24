@@ -1,7 +1,10 @@
 /**********************************
  * Description: 
  *      Using grover's algorithm to invert QFT multiplication
- *      to achieve efficient SP factoring.
+ *      to achieve quantum SP factoring.
+ * Note:
+ *      Must be updated with methods from [this paper](https://arxiv.org/pdf/2312.10054)
+ *      to reduce error and increase qubit efficiency.
  * Author: Jacob Collins
  **********************************/
 
@@ -331,7 +334,7 @@ void display_full_results(std::vector<std::tuple<std::string, size_t>> results, 
     int z_val = bin_to_int(z_out);
     // % of whole
     if (i < n_printed) {
-      if (z_val == x_val*y_val) {
+      if (z_val == x_val*y_val && z_val == z) {
         printf("%d * %d = %d (%lu/%lu = %.2f%%) ✓ \n", x_val, y_val, z_val, count, n_shots, (float) 100 * count / n_shots);
       } else {
         printf("%d * %d != %d (%lu/%lu = %.2f%%) X\n", x_val, y_val, z_val, count, n_shots, (float) 100 * count / n_shots);
