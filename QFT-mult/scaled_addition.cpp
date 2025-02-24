@@ -1,5 +1,9 @@
 /**********************************
- * Description: An out-of-place implementation of QFT addition.
+ * Description: 
+ *      An out-of-place implementation of QFT addition.
+ *      This adder includes a scalar multiplier to one of
+ *      the values being added.        
+ * https://arxiv.org/pdf/1411.5949
  * Author: Jacob Collins
  **********************************/
 #include <cudaq.h>
@@ -200,7 +204,7 @@ __qpu__ void addKFourier(cudaq::qview<> qs, const int k) {
 // Based on pennylane.ai implementation
 // https://pennylane.ai/qml/demos/tutorial_qft_arithmetics
 struct QFTAdder {
-  void operator()(cudaq::qview<> x_reg, cudaq::qview<> y_reg, cudaq::qview<> z_reg) __qpu__ {
+  void operator()(const long c, cudaq::qview<> x_reg, cudaq::qview<> y_reg, cudaq::qview<> z_reg) __qpu__ {
     const int nbits_y = y_reg.size();
     // const int nbits_z = z_reg.size();
     int k;
@@ -208,6 +212,8 @@ struct QFTAdder {
     // Add x
     for (int i = 0; i < nbits_y; ++i) {
       k = (pow(2, nbits_y - (i + 1)));
+      // Scalar c
+      k *= c;
       // https://nvidia.github.io/cuda-quantum/latest/specification/cudaq/synthesis.html
       cudaq::control(addKFourier, x_reg[i], z_reg, k);
     }
@@ -224,7 +230,7 @@ struct QFTAdder {
 /****************** CUDAQ STRUCTS ******************/
 // Driver for adder
 struct runAdder {
-  __qpu__ auto operator()(const long x, const long y,
+  __qpu__ auto operator()(const long c, const long x, const long y,
                           const int nbits_x, const int nbits_y, const int nbits_z) {
     // 1. Initialize Registers
     QFTAdder add_op;
@@ -240,7 +246,7 @@ struct runAdder {
     quantumFourierTransform(z_reg);
 
     // 2. Add
-    add_op(x_reg, y_reg, z_reg);
+    add_op(c, x_reg, y_reg, z_reg);
     // addKFourier(z_reg, 11);
 
     // cudaq::adjoint(add_op, y_reg, z_reg, c);
@@ -253,7 +259,7 @@ struct runAdder {
   }
 };
 
-void display_full_results(std::vector<std::tuple<std::string, size_t>> results, long x, long y, int nbits_x, int nbits_y, int nbits_z, size_t n_printed=5) {
+void display_full_results(std::vector<std::tuple<std::string, size_t>> results, long c, long x, long y, int nbits_x, int nbits_y, int nbits_z, size_t n_printed=5) {
   size_t n_shots = NUMBER_OF_SHOTS;
   size_t total_correct = 0;
   int i = 0;
@@ -271,7 +277,7 @@ void display_full_results(std::vector<std::tuple<std::string, size_t>> results, 
     int z_val = bin_to_int(z_out);
     // % of whole
     if (i < n_printed) {
-      printf("%d + %d = %d (%lu/%lu = %.2f%%)\n", x_val, y_val, z_val, count, n_shots, (float) 100 * count / n_shots);
+      printf("(%ld*%d) + %d = %d (%lu/%lu = %.2f%%)\n", c, x_val, y_val, z_val, count, n_shots, (float) 100 * count / n_shots);
       if (ENABLE_DEBUG) {
         printf("  Full result: %s\n", result.c_str());
         printf("  (R1) x: %d (%s)\n", x_val, bin_str(x_val, nbits_x).c_str());
@@ -279,7 +285,7 @@ void display_full_results(std::vector<std::tuple<std::string, size_t>> results, 
         printf("  (R3) z: %d (%s)\n", z_val, bin_str(z_val, nbits_z).c_str());
       }
     }
-    if (z_val == x_val+y_val) {
+    if (z_val == (c*x_val)+y_val) {
       total_correct += count;
     }
     i++;
@@ -291,27 +297,27 @@ void display_full_results(std::vector<std::tuple<std::string, size_t>> results, 
   printf("%lu / %lu Shots Correct. (%.2f%%)\n", total_correct, n_shots, (float) 100 * total_correct / n_shots);
 }
 
-void run_QFT_adder(long x, long y) {
+void run_QFT_adder(long c, long x, long y) {
+  long z = (c*x) + y;
   // Necessary # bits computed based on input values. Min 1.
   int nbits_x = ceil(log2(max(std::vector<long>({x, y, 1})) + 1));
   int nbits_y = nbits_x;
-  int nbits_z = nbits_x + 1;
-  long z = x + y;
+  int nbits_z = ceil(log2(max(std::vector<long>({x, y, z, 1})) + 1));
 
   printf("\nVERIFIED INPUTS\n");
   printf("x: %ld (%s), nbits=%d\n", x, bin_str(x, nbits_x).c_str(), nbits_x);
   printf("y: %ld (%s), nbits=%d\n", y, bin_str(y, nbits_y).c_str(), nbits_y);
   printf("\nEXPECTED VALUES\n");
   printf("z: %ld (%s)\n", z, bin_str(z, nbits_z).c_str());
-  printf("Adding values: %ld + %ld = %ld\n", x, y, z);
+  printf("Adding values: (%ld*%ld) + %ld = %ld\n", c, x, y, z);
   printf("Expected Full Out: (%s_%s_%s)\n", bin_str(x, nbits_x).c_str(),
          bin_str(y, nbits_y).c_str(), bin_str(z, nbits_z).c_str());
 
   // Draw circuit and view statevector
   if (ENABLE_CIRCUIT_FIG)
-    std::cout << cudaq::draw(runAdder{}, x, y, nbits_x, nbits_y, nbits_z);
+    std::cout << cudaq::draw(runAdder{}, c, x, y, nbits_x, nbits_y, nbits_z);
   if (ENABLE_STATEVECTOR) {
-    auto state = cudaq::get_state(runAdder{}, x, y, nbits_x, nbits_y, nbits_z);
+    auto state = cudaq::get_state(runAdder{}, c, x, y, nbits_x, nbits_y, nbits_z);
     state.dump();
   }
   
@@ -319,7 +325,7 @@ void run_QFT_adder(long x, long y) {
   auto start = std::chrono::high_resolution_clock::now();
 
   int n_shots = NUMBER_OF_SHOTS; // Get a lot of samples
-  auto counts = cudaq::sample(n_shots, runAdder{}, x, y, nbits_x, nbits_y, nbits_z);
+  auto counts = cudaq::sample(n_shots, runAdder{}, c, x, y, nbits_x, nbits_y, nbits_z);
 
   auto end = std::chrono::high_resolution_clock::now();
   auto duration =
@@ -327,7 +333,7 @@ void run_QFT_adder(long x, long y) {
   printf("\nAdder finished in %s.\n", format_time(duration).c_str());
   std::vector<std::tuple<std::string, size_t>> results = sort_map(counts.to_map());
   printf("\nMEASURED RESULTS\n");
-  display_full_results(results, x, y, nbits_x, nbits_y, nbits_z, 5);
+  display_full_results(results, c, x, y, nbits_x, nbits_y, nbits_z, 5);
   printf("\n");
 }
 
@@ -335,12 +341,13 @@ void run_QFT_adder(long x, long y) {
 int main(int argc, char *argv[]) {
   // PARSE INPUT VALUES
   // Default search value
-  printf("Usage: ./inverse_add.x [x] [y]\n");
-  long x=1, y=2;
+  printf("Usage: ./inverse_add.x [c] [x] [y]\n");
+  long x=1, y=2, c=2;
   if (argc >= 3) {
-    x = strtol(argv[1], nullptr, 10);
-    y = strtol(argv[2], nullptr, 10);
+    c = strtol(argv[1], nullptr, 10);
+    x = strtol(argv[2], nullptr, 10);
+    y = strtol(argv[3], nullptr, 10);
   }
-  printf("This will attempt to use QFT to compute x + y = z (Out-of-place).\n");
-  run_QFT_adder(x, y);
+  printf("This will attempt to use QFT to compute (c*x) + y = z (Out-of-place).\n");
+  run_QFT_adder(c, x, y);
 }
