@@ -20,7 +20,7 @@ This is a necessary step towards implementing QFT-based multiplication for use i
 - [x] QFT Inverse Addition (Out of place)
 - [x] QFT Scaled Addition (Out of place)
 - [x] QFT Multiplication (Out of place)
-- [ ] **QFT Inverse Multiplication** (Out of place)
+- [x] **QFT Inverse Multiplication** (Out of place) - High error, requires methods from the paper.
 - [ ] QFT Addition (In-place)
 - [ ] QFT Inverse Addition (In-place)
 - [ ] QFT Scaled Addition (In-place)
