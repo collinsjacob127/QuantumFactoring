@@ -22,8 +22,8 @@
 #include <string>
 #include <vector>
 
-#define ENABLE_DEBUG false // Displays full bitwise output
-#define ENABLE_CIRCUIT_FIG false
+#define ENABLE_DEBUG true // Displays full bitwise output
+#define ENABLE_CIRCUIT_FIG true
 #define ENABLE_MISC_DEBUG false
 #define ENABLE_STATEVECTOR false
 
@@ -344,7 +344,7 @@ void display_full_results(std::vector<std::tuple<std::string, size_t>> results, 
         printf("  Full result: %s_%s_%s\n", x_out.c_str(), y_out.c_str(), z_out.c_str());
         printf("  (R1) x: %d (%s)\n", x_val, x_out.c_str());
         printf("  (R2) y: %d (%s)\n", y_val, y_out.c_str());
-        printf("  (R3) z: %d (%s)\n", z_val, z_out.c_str());
+        printf("  (R3) N: %d (%s)\n", z_val, z_out.c_str());
       }
     }
     if (z_val == x_val*y_val && z_val == z) {
@@ -366,21 +366,22 @@ int min_bits(long x) {
 
 void run_SP_factor(long z) {
   // Necessary # bits computed based on input values. 
-  int nbits_z = 2*min_bits(z);
-  int nbits_x = min_bits(sqrt(z)+1);
-  int nbits_y = nbits_x;
+//   int nbits_z = 2*min_bits(z);
+//   int nbits_x = min_bits(sqrt(z)+1);
+//   int nbits_y = nbits_x;
 
-//   int nbits_z = (int) (1.5 * min_bits(z));
-//   int nbits_y = min_bits((z/3));
+  int nbits_z = (int) (2 * min_bits(z));
+  int nbits_y = min_bits((z/3));
 //   int nbits_y = nbits_x;
 //   int nbits_x = min_bits(sqrt(z));
+  int nbits_x = nbits_y;
 
 //   int nbits_x = min_bits(z)-1;
 //   int nbits_y = nbits_x;
 //   int nbits_z = 2*(nbits_x+1);
 
   printf("\nVERIFIED INPUTS\n");
-  printf("z: %ld (%s)\n", z, bin_str(z, nbits_z).c_str());
+  printf("N: %ld (%s)\n", z, bin_str(z, nbits_z).c_str());
 
   // Draw circuit and view statevector
   if (ENABLE_CIRCUIT_FIG)
@@ -399,7 +400,7 @@ void run_SP_factor(long z) {
   auto end = std::chrono::high_resolution_clock::now();
   auto duration =
       std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
-  printf("\nAdder finished in %s.\n", format_time(duration).c_str());
+  printf("\nSP Factoring finished in %s.\n", format_time(duration).c_str());
   std::vector<std::tuple<std::string, size_t>> results = sort_map(counts.to_map());
   printf("\nMEASURED RESULTS\n");
   display_full_results(results, z, nbits_x, nbits_y, nbits_z, NUM_RESULTS_DISPLAYED);
@@ -410,14 +411,14 @@ void run_SP_factor(long z) {
 int main(int argc, char *argv[]) {
   // PARSE INPUT VALUES
   // Default search value
-  printf("Usage: ./factor.x [z = Semiprime]\n");
+  printf("Usage: ./factor.x [N = Semiprime]\n");
   long z = 15;
   if (argc >= 2) {
     z = strtol(argv[1], nullptr, 10);
   }
-  printf("This will attempt to use QFT to compute ? * ? = z | z > 8.\n");
+  printf("Finding p1, p2 | p1 * p2 = N, N > 8.\n");
 
-  if (z < 9) { printf("Invalid input for z\n"); }
+  if (z < 9 || z % 2 == 0) { printf("Invalid input for z\n"); }
 
   run_SP_factor(z);
 }
