@@ -9,9 +9,7 @@ Code is written using [CUDA-Q C++](https://nvidia.github.io/cuda-quantum/latest/
 Code can be compiled with `make` as a standalone command, and run with `./filename.x`. If arguments are required, they will be
 described when the program is run without arguments. Code in [in-progress](in-progress/) is not guaranteed to work.
 
-`QFT_OOP_addition.cpp` is the most recent update. 
-It uses QFT-based addition to add the values in register 1 and register 2, with the output being sent to register 3. 
-This is a necessary step towards implementing QFT-based multiplication for use in semiprime factoring.
+![](figs/simple_factor.png)
 
 ## TODO:
 
