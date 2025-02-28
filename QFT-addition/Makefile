@@ -7,13 +7,11 @@ CXX        = nvq++
 NVQFLAGS   = --target nvidia
 # NVQFLAGS = 
 
-# PRODUCT = test-install inverse_add basic_addition QFT_addition QFT_factor QFT_multiplication sp_factorization grover QFT_scaled_addition
-PRODUCT = test-install inverse_add basic_addition QFT_addition QFT_exploration QFT_OOP_addition
+# List C++ source files (assumed to have the .cpp extension).
+CPPFILES := $(wildcard *.cpp)
 
 .PHONY: all clean
 
-# List C++ source files (assumed to have the .cpp extension).
-CPPFILES := $(wildcard *.cpp)
 
 # Default rule: build all products (.x executables)
 #all: $(PRODUCT:%=%.x)

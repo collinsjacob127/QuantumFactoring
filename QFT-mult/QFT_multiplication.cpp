@@ -329,7 +329,7 @@ void run_QFT_mult(long x, long y) {
   auto end = std::chrono::high_resolution_clock::now();
   auto duration =
       std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
-  printf("\nAdder finished in %s.\n", format_time(duration).c_str());
+  printf("\nMult finished in %s.\n", format_time(duration).c_str());
   std::vector<std::tuple<std::string, size_t>> results = sort_map(counts.to_map());
   printf("\nMEASURED RESULTS\n");
   display_full_results(results, x, y, nbits_x, nbits_y, nbits_z, 5);

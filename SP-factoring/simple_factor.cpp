@@ -21,14 +21,13 @@
 #include <string>
 #include <vector>
 
-// # define M_PIl          3.141592653589793238462643383279502884L /* pi */
-
-#define ENABLE_DEBUG true
+#define ENABLE_DEBUG false // Displays full bitwise output
 #define ENABLE_CIRCUIT_FIG false
 #define ENABLE_MISC_DEBUG false
 #define ENABLE_STATEVECTOR false
+
 #define NUMBER_OF_SHOTS 100
-#define NUM_RESULTS_DISPLAYED 10
+#define NUM_RESULTS_DISPLAYED 5
 
 /**************************************************
 ******************* HELPER FUNCS ******************
@@ -171,13 +170,13 @@ __qpu__ void setInt(const long val, cudaq::qview<> qs, bool qorder=true) {
 __qpu__ void quantumFourierTransform(cudaq::qview<> qs) {
   const int nbits = qs.size();
   int shift_len = nbits-1;
-  double shifts[nbits-1];
-  double idx;
+  long double shifts[nbits-1];
+  long double idx;
   // Calculate phase shifts 
   for (int i = 0; i < shift_len; ++i) {
     idx = i+2;
-    shifts[i] = (double) 2 * std::numbers::pi * pow(2, -idx); 
-    if (ENABLE_MISC_DEBUG) { printf("QFT PHASE %d: %lf\n", i, shifts[i]); }
+    shifts[i] = (long double) 2 * std::numbers::pi * pow(2, -idx); 
+    if (ENABLE_MISC_DEBUG) { printf("QFT PHASE %d: %Lf\n", i, shifts[i]); }
   }
   // Apply phase shifts
   for (int i = 0; i < nbits; ++i) {
@@ -193,13 +192,12 @@ __qpu__ void quantumFourierTransform(cudaq::qview<> qs) {
 }
 
 // Add an increment of k*pi/2^j across this register
-// NEARLY working - adds in reverse bit order :(
 __qpu__ void addKFourier(cudaq::qview<> qs, const int k) {
   const int nbits = qs.size();
-  double phase; 
+  long double phase; 
   // Apply phase shifts
   for (int j = 0; j < nbits; ++j) {
-    phase = (double) k * std::numbers::pi * pow(2, -j);
+    phase = (long double) k * std::numbers::pi / pow(2, j);
     rz(phase, qs[j]);
   }
 }
@@ -209,8 +207,7 @@ __qpu__ void addRegScaled(cudaq::qview<> y_reg, cudaq::qview<> z_reg, const int 
   int k; 
   // Add y
   for (int i = 0; i < nbits_y; ++i) {
-    k = (pow(2, nbits_y - (i + 1)));
-    k *= c;
+    k = c * (pow(2, nbits_y - (i + 1)));
     cudaq::control(addKFourier, y_reg[i], z_reg, k);
   }
 }
@@ -274,7 +271,7 @@ struct QFTMult {
 };
 
 /****************** CUDAQ STRUCTS ******************/
-struct runFactor {
+struct runFactorization {
   __qpu__ auto operator()(const long semiprime,
                           const int nbits_x, const int nbits_y, const int nbits_z) {
     // 1. Initialize Registers
@@ -291,9 +288,11 @@ struct runFactor {
 
     // ( pi / 4 ) * sqrt( N / k )
     // N: Size of search space (2^n choose 2)
-    // k: Number of valid matching entries (assumed 4 for SP: (p1,p2), (p2,p1), (1,sp), (sp,1))
+    // k: Number of valid matching entries (assumed 2 for SP: (p1,p2), (p2,p1), (1,sp), (sp,1))
     // int n_iter = (0.785398) * sqrt(pow(2, nbits_x) * (pow(2, nbits_x)) / 4);
-    int n_iter = (0.785398) * sqrt(pow(2, (nbits_x+nbits_y)/2));
+    // int n_iter = (std::numbers::pi/4) * sqrt(pow(2, (nbits_z)/2));
+    // int n_iter = (std::numbers::pi/4) * sqrt(pow(2, (nbits_x+nbits_y)/2));
+    int n_iter = (std::numbers::pi/4) * sqrt(pow(2, (nbits_z)/2));
     for (int i = 0; i < n_iter; i++) {
       // 2. Multiply
       mult_op(x_reg, y_reg, z_reg);
@@ -340,10 +339,10 @@ void display_full_results(std::vector<std::tuple<std::string, size_t>> results, 
         printf("%d * %d != %d (%lu/%lu = %.2f%%) X\n", x_val, y_val, z_val, count, n_shots, (float) 100 * count / n_shots);
       }
       if (ENABLE_DEBUG) {
-        printf("  Full result: %s\n", result.c_str());
-        printf("  (R1) x: %d (%s)\n", x_val, bin_str(x_val, nbits_x).c_str());
-        printf("  (R2) y: %d (%s)\n", y_val, bin_str(y_val, nbits_y).c_str());
-        printf("  (R3) z: %d (%s)\n", z_val, bin_str(z_val, nbits_z).c_str());
+        printf("  Full result: %s_%s_%s\n", x_out.c_str(), y_out.c_str(), z_out.c_str());
+        printf("  (R1) x: %d (%s)\n", x_val, x_out.c_str());
+        printf("  (R2) y: %d (%s)\n", y_val, y_out.c_str());
+        printf("  (R3) z: %d (%s)\n", z_val, z_out.c_str());
       }
     }
     if (z_val == x_val*y_val && z_val == z) {
@@ -358,20 +357,34 @@ void display_full_results(std::vector<std::tuple<std::string, size_t>> results, 
   printf("%lu / %lu Shots Correct. (%.2f%%)\n", total_correct, n_shots, (float) 100 * total_correct / n_shots);
 }
 
+// Return the minimum # bits needed to represent some number
+int min_bits(long x) {
+    return ceil(log2(max(std::vector<long>({x, 1})) + 1));
+}
+
 void run_SP_factor(long z) {
   // Necessary # bits computed based on input values. Min 1.
-  int nbits_z = ceil(log2(max(std::vector<long>({z, 1})) + 1));
-  int nbits_x = nbits_z-1;
+  int nbits_z = 2*min_bits(z);
+  int nbits_x = min_bits(sqrt(z)+1);
   int nbits_y = nbits_x;
+
+//   int nbits_z = (int) (1.5 * min_bits(z));
+//   int nbits_y = min_bits((z/3));
+//   int nbits_y = nbits_x;
+//   int nbits_x = min_bits(sqrt(z));
+
+//   int nbits_x = min_bits(z)-1;
+//   int nbits_y = nbits_x;
+//   int nbits_z = 2*(nbits_x+1);
 
   printf("\nVERIFIED INPUTS\n");
   printf("z: %ld (%s)\n", z, bin_str(z, nbits_z).c_str());
 
   // Draw circuit and view statevector
   if (ENABLE_CIRCUIT_FIG)
-    std::cout << cudaq::draw(runFactor{}, z, nbits_x, nbits_y, nbits_z);
+    std::cout << cudaq::draw(runFactorization{}, z, nbits_x, nbits_y, nbits_z);
   if (ENABLE_STATEVECTOR) {
-    auto state = cudaq::get_state(runFactor{}, z, nbits_x, nbits_y, nbits_z);
+    auto state = cudaq::get_state(runFactorization{}, z, nbits_x, nbits_y, nbits_z);
     state.dump();
   }
   
@@ -379,7 +392,7 @@ void run_SP_factor(long z) {
   auto start = std::chrono::high_resolution_clock::now();
 
   int n_shots = NUMBER_OF_SHOTS; // Get a lot of samples
-  auto counts = cudaq::sample(n_shots, runFactor{}, z, nbits_x, nbits_y, nbits_z);
+  auto counts = cudaq::sample(n_shots, runFactorization{}, z, nbits_x, nbits_y, nbits_z);
 
   auto end = std::chrono::high_resolution_clock::now();
   auto duration =
@@ -400,6 +413,9 @@ int main(int argc, char *argv[]) {
   if (argc >= 2) {
     z = strtol(argv[1], nullptr, 10);
   }
-  printf("This will attempt to use QFT to compute ? * ? = z (Out-of-place).\n");
+  printf("This will attempt to use QFT to compute ? * ? = z | z > 8.\n");
+
+  if (z < 9) { printf("Invalid input for z\n"); }
+
   run_SP_factor(z);
 }
