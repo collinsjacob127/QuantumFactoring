@@ -22,8 +22,8 @@
 #include <string>
 #include <vector>
 
-#define ENABLE_DEBUG false // Displays full bitwise output
-#define ENABLE_CIRCUIT_FIG false
+#define ENABLE_DEBUG true // Displays full bitwise output
+#define ENABLE_CIRCUIT_FIG true
 #define ENABLE_MISC_DEBUG false
 #define ENABLE_STATEVECTOR false
 
@@ -366,14 +366,15 @@ int min_bits(long x) {
 
 void run_SP_factor(long z) {
   // Necessary # bits computed based on input values. 
-  int nbits_z = 2*min_bits(z);
-  int nbits_x = min_bits(sqrt(z)+1);
-  int nbits_y = nbits_x;
+//   int nbits_z = 2*min_bits(z);
+//   int nbits_x = min_bits(sqrt(z)+1);
+//   int nbits_y = nbits_x;
 
-//   int nbits_z = (int) (1.5 * min_bits(z));
-//   int nbits_y = min_bits((z/3));
+  int nbits_z = (int) (2 * min_bits(z));
+  int nbits_y = min_bits((z/3));
 //   int nbits_y = nbits_x;
 //   int nbits_x = min_bits(sqrt(z));
+  int nbits_x = nbits_y;
 
 //   int nbits_x = min_bits(z)-1;
 //   int nbits_y = nbits_x;
