@@ -352,7 +352,7 @@ void display_full_results(std::vector<std::tuple<std::string, size_t>> results, 
         printf("%d * %d = %ld (%lu/%lu = %.2f%%) ✓ \n", x_val, y_val, z, count, n_shots, (float) 100 * count / n_shots);
       } else {
         // printf("%d * %d != %d (%lu/%lu = %.2f%%) X\n", x_val, y_val, z_val, count, n_shots, (float) 100 * count / n_shots);
-        printf("%d * %d != %ld (%lu/%lu = %.2f%%) X\n", x_val, y_val, z, count, n_shots, (float) 100 * count / n_shots);
+        printf("%d * %d = %ld (%lu/%lu = %.2f%%) X\n", x_val, y_val, z, count, n_shots, (float) 100 * count / n_shots);
       }
       if (ENABLE_DEBUG) {
         // printf("  Full result: %s_%s_%s\n", x_out.c_str(), y_out.c_str(), z_out.c_str());
@@ -385,6 +385,7 @@ void run_SP_factor(long N) {
   printf("S = 1.5 - 0.5*(N %% 6) = %ld\n", S);
   long M = (N - S)/6 - 1;
   printf("Z register (R3) initialized to M = -1 + (N-S)/6 = %ld\n", M);
+
   long z = N;
   // Necessary # bits computed based on input values. Min 1.
   int nbits_z = 2*min_bits(z);

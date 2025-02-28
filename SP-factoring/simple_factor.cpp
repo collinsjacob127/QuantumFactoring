@@ -23,7 +23,7 @@
 #include <vector>
 
 #define ENABLE_DEBUG true // Displays full bitwise output
-#define ENABLE_CIRCUIT_FIG true
+#define ENABLE_CIRCUIT_FIG false
 #define ENABLE_MISC_DEBUG false
 #define ENABLE_STATEVECTOR false
 
@@ -338,7 +338,7 @@ void display_full_results(std::vector<std::tuple<std::string, size_t>> results, 
       if (z_val == x_val*y_val && z_val == z) {
         printf("%d * %d = %d (%lu/%lu = %.2f%%) ✓ \n", x_val, y_val, z_val, count, n_shots, (float) 100 * count / n_shots);
       } else {
-        printf("%d * %d != %d (%lu/%lu = %.2f%%) X\n", x_val, y_val, z_val, count, n_shots, (float) 100 * count / n_shots);
+        printf("%d * %d = %d (%lu/%lu = %.2f%%) X\n", x_val, y_val, z_val, count, n_shots, (float) 100 * count / n_shots);
       }
       if (ENABLE_DEBUG) {
         printf("  Full result: %s_%s_%s\n", x_out.c_str(), y_out.c_str(), z_out.c_str());
@@ -366,19 +366,10 @@ int min_bits(long x) {
 
 void run_SP_factor(long z) {
   // Necessary # bits computed based on input values. 
-//   int nbits_z = 2*min_bits(z);
-//   int nbits_x = min_bits(sqrt(z)+1);
-//   int nbits_y = nbits_x;
-
-  int nbits_z = (int) (2 * min_bits(z));
   int nbits_y = min_bits((z/3));
-//   int nbits_y = nbits_x;
-//   int nbits_x = min_bits(sqrt(z));
   int nbits_x = nbits_y;
-
-//   int nbits_x = min_bits(z)-1;
-//   int nbits_y = nbits_x;
-//   int nbits_z = 2*(nbits_x+1);
+  int nbits_z = nbits_y * 2;
+//   int nbits_z = min_bits(pow(z/3, 2));
 
   printf("\nVERIFIED INPUTS\n");
   printf("N: %ld (%s)\n", z, bin_str(z, nbits_z).c_str());
