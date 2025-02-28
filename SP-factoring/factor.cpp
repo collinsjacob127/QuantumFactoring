@@ -5,7 +5,7 @@
  * Note:
  *      Must be updated with methods from [this paper](https://arxiv.org/pdf/2312.10054)
  *      to reduce error and increase qubit efficiency.
- *      ^ IP in `factor.cpp`
+ *      IN PROGRESS
  * Author: Jacob Collins
  **********************************/
 
@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-#define ENABLE_DEBUG false // Displays full bitwise output
+#define ENABLE_DEBUG true // Displays full bitwise output
 #define ENABLE_CIRCUIT_FIG false
 #define ENABLE_MISC_DEBUG false
 #define ENABLE_STATEVECTOR false
@@ -273,28 +273,39 @@ struct QFTMult {
 
 /****************** CUDAQ STRUCTS ******************/
 struct runFactorization {
-  __qpu__ auto operator()(const long semiprime,
+  __qpu__ auto operator()(const long semiprime,// const long M,
                           const int nbits_x, const int nbits_y, const int nbits_z) {
-    // 1. Initialize Registers
+    // 1. Initialize Registers and Operators
     QFTMult mult_op;
     reflect_uniform diffuse_op{};
     oracle oracle_op{.target_state = semiprime};
-    cudaq::qvector q_reg(nbits_x + nbits_y + nbits_z);  // Value 1 reg
-    cudaq::qview x_reg = q_reg.front(nbits_x);
-    cudaq::qview y_reg = q_reg.slice(nbits_x, nbits_y);
-    cudaq::qview z_reg = q_reg.back(nbits_z);  // Value 2 reg
+
+    // Inputs (H for simultaneous simulation of all inputs)
+    cudaq::qvector in_reg(nbits_x + nbits_y);  // Register for X and Y
+    cudaq::qview x_reg = in_reg.front(nbits_x);
+    cudaq::qview y_reg = in_reg.back(nbits_y);
+
+    // Output (will be checked by oracle)
+    cudaq::qvector out_reg(nbits_z);  // Register for Z
+    cudaq::qview z_reg = out_reg.back(nbits_z);  // Value 2 reg
+
+    // Target (will be set by oracle, controls diffuser)
     cudaq::qvector tgt(1);
+
+    // Superposition for inputs
     h(x_reg);
     h(y_reg);
 
-    // ( pi / 4 ) * sqrt( N / k )
+    // Starting value for Z register
+
+
+    // # grover iterations = ( pi / 4 ) * sqrt( N / k )
     // N: Size of search space (2^n choose 2)
-    // k: Number of valid matching entries (assumed 2 for SP: (p1,p2), (p2,p1), (1,sp), (sp,1))
-    // int n_iter = (0.785398) * sqrt(pow(2, nbits_x) * (pow(2, nbits_x)) / 4);
+    // k: Number of valid matching entries, assumed 2 for SP: (p1,p2), (p2,p1)
     // int n_iter = (std::numbers::pi/4) * sqrt(pow(2, (nbits_z)/2));
     // int n_iter = (std::numbers::pi/4) * sqrt(pow(2, (nbits_x+nbits_y)/2));
     // int n_iter = (std::numbers::pi/4) * sqrt(pow(2, (nbits_z)/2));
-    int n_iter = (std::numbers::pi/4) * pow(2, (nbits_y + nbits_x)/2) / sqrt(2);
+    int n_iter = (std::numbers::pi/4) * pow(2, (nbits_x+nbits_y)/2) / sqrt(2);
     for (int i = 0; i < n_iter; i++) {
       // 2. Multiply
       mult_op(x_reg, y_reg, z_reg);
@@ -306,14 +317,14 @@ struct runFactorization {
       cudaq::adjoint(mult_op, x_reg, y_reg, z_reg);
 
       // 5. Diffusion to maximize probability
-      diffuse_op(q_reg.front(nbits_x + nbits_y), tgt.front(1));
+      diffuse_op(in_reg, tgt.front(1));
     }
 
     // 2. Mult
     mult_op(x_reg, y_reg, z_reg);
 
     // 3. Measure
-    mz(q_reg);
+    mz(in_reg);
   }
 };
 
@@ -329,25 +340,29 @@ void display_full_results(std::vector<std::tuple<std::string, size_t>> results, 
     // Parse
     std::string x_out = result.substr(0, nbits_x);
     std::string y_out = result.substr(nbits_x, nbits_y);
-    std::string z_out = result.substr(nbits_y+nbits_x, nbits_z);
+    // std::string z_out = result.substr(nbits_y+nbits_x, nbits_z);
     int x_val = bin_to_int(x_out);
     int y_val = bin_to_int(y_out);
-    int z_val = bin_to_int(z_out);
+    // int z_val = bin_to_int(z_out);
+
     // % of whole
     if (i < n_printed) {
-      if (z_val == x_val*y_val && z_val == z) {
-        printf("%d * %d = %d (%lu/%lu = %.2f%%) ✓ \n", x_val, y_val, z_val, count, n_shots, (float) 100 * count / n_shots);
+      if (x_val*y_val == z) {
+        // printf("%d * %d = %d (%lu/%lu = %.2f%%) ✓ \n", x_val, y_val, z_val, count, n_shots, (float) 100 * count / n_shots);
+        printf("%d * %d = %ld (%lu/%lu = %.2f%%) ✓ \n", x_val, y_val, z, count, n_shots, (float) 100 * count / n_shots);
       } else {
-        printf("%d * %d != %d (%lu/%lu = %.2f%%) X\n", x_val, y_val, z_val, count, n_shots, (float) 100 * count / n_shots);
+        // printf("%d * %d != %d (%lu/%lu = %.2f%%) X\n", x_val, y_val, z_val, count, n_shots, (float) 100 * count / n_shots);
+        printf("%d * %d != %ld (%lu/%lu = %.2f%%) X\n", x_val, y_val, z, count, n_shots, (float) 100 * count / n_shots);
       }
       if (ENABLE_DEBUG) {
-        printf("  Full result: %s_%s_%s\n", x_out.c_str(), y_out.c_str(), z_out.c_str());
+        // printf("  Full result: %s_%s_%s\n", x_out.c_str(), y_out.c_str(), z_out.c_str());
+        printf("  Full result: %s_%s\n", x_out.c_str(), y_out.c_str());
         printf("  (R1) x: %d (%s)\n", x_val, x_out.c_str());
         printf("  (R2) y: %d (%s)\n", y_val, y_out.c_str());
-        printf("  (R3) z: %d (%s)\n", z_val, z_out.c_str());
+        // printf("  (R3) z: %d (%s)\n", z_val, z_out.c_str());
       }
     }
-    if (z_val == x_val*y_val && z_val == z) {
+    if (x_val*y_val == z) {
       total_correct += count;
     }
     i++;
@@ -364,20 +379,17 @@ int min_bits(long x) {
     return ceil(log2(max(std::vector<long>({x, 1})) + 1));
 }
 
-void run_SP_factor(long z) {
-  // Necessary # bits computed based on input values. 
+void run_SP_factor(long N) {
+  
+  long S = (long) ((float) 1.5 - (float) 0.5 * (float) (N % 6));
+  printf("S = 1.5 - 0.5*(N %% 6) = %ld\n", S);
+  long M = (N - S)/6 - 1;
+  printf("Z register (R3) initialized to M = -1 + (N-S)/6 = %ld\n", M);
+  long z = N;
+  // Necessary # bits computed based on input values. Min 1.
   int nbits_z = 2*min_bits(z);
   int nbits_x = min_bits(sqrt(z)+1);
   int nbits_y = nbits_x;
-
-//   int nbits_z = (int) (1.5 * min_bits(z));
-//   int nbits_y = min_bits((z/3));
-//   int nbits_y = nbits_x;
-//   int nbits_x = min_bits(sqrt(z));
-
-//   int nbits_x = min_bits(z)-1;
-//   int nbits_y = nbits_x;
-//   int nbits_z = 2*(nbits_x+1);
 
   printf("\nVERIFIED INPUTS\n");
   printf("z: %ld (%s)\n", z, bin_str(z, nbits_z).c_str());
@@ -410,14 +422,17 @@ void run_SP_factor(long z) {
 int main(int argc, char *argv[]) {
   // PARSE INPUT VALUES
   // Default search value
-  printf("Usage: ./factor.x [z = Semiprime]\n");
-  long z = 15;
+  printf("Usage: ./factor.x [N = Semiprime]\n");
+  long N = 15;
   if (argc >= 2) {
-    z = strtol(argv[1], nullptr, 10);
+    N = strtol(argv[1], nullptr, 10);
   }
-  printf("This will attempt to use QFT to compute ? * ? = z | z > 8.\n");
+  printf("This will attempt to use QFT to compute factors of %ld\n", N);
 
-  if (z < 9) { printf("Invalid input for z\n"); }
+  if (N < 3 || N % 3 == 0 || N % 2 == 0) { 
+    printf("Invalid input for N: %ld, must be composed of primes p,q > 3\n", N); 
+    return EXIT_FAILURE;
+  }
 
-  run_SP_factor(z);
+  run_SP_factor(N);
 }
