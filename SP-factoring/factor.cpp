@@ -143,11 +143,24 @@ int bin_to_int(std::string &s, bool qorder=true) {
   return result;
 }
 
+long calculate_S(long N) {
+  return (long) ((float) 1.5 - (float) 0.5 * (float) (N % 6));
+}
+
+long calculate_M(long N) {
+  return (N - calculate_S(N))/6 - 1;
+}
+
+// Return the minimum # bits needed to represent some number
+int min_bits(long x) {
+    return ceil(log2(max(std::vector<long>({x, 1})) + 1));
+}
+
 
 /****************** CUDAQ FUNCS ******************/
 // Apply NOT-gates in accordance with bit-pattern of given integer.
 // Bit-order is reversed. i.e. 3 (00011) would be (11000)
-__qpu__ void setInt(const long val, cudaq::qview<> qs, bool qorder=true) {
+__qpu__ void set_int(const long val, cudaq::qview<> qs, bool qorder=true) {
   if (qorder) {
     // Iterate through bits in val
     for (int i = 1; i <= qs.size(); ++i) {
@@ -167,8 +180,7 @@ __qpu__ void setInt(const long val, cudaq::qview<> qs, bool qorder=true) {
 
 // Converted from qml function
 // https://docs.pennylane.ai/en/stable/_modules/pennylane/templates/subroutines/qft.html#QFT
-// ~WORKS PERFECTLY~
-__qpu__ void quantumFourierTransform(cudaq::qview<> qs) {
+__qpu__ void qft(cudaq::qview<> qs) {
   const int nbits = qs.size();
   int shift_len = nbits-1;
   long double shifts[nbits-1];
@@ -193,7 +205,7 @@ __qpu__ void quantumFourierTransform(cudaq::qview<> qs) {
 }
 
 // Add an increment of k*pi/2^j across this register
-__qpu__ void addKFourier(cudaq::qview<> qs, const int k) {
+__qpu__ void qft_add_const(cudaq::qview<> qs, const int k) {
   const int nbits = qs.size();
   long double phase; 
   // Apply phase shifts
@@ -203,82 +215,74 @@ __qpu__ void addKFourier(cudaq::qview<> qs, const int k) {
   }
 }
 
-__qpu__ void addRegScaled(cudaq::qview<> y_reg, cudaq::qview<> z_reg, const int c) {
+__qpu__ void add_reg_scaled(cudaq::qview<> y_reg, cudaq::qview<> z_reg, const int c) {
   const int nbits_y = y_reg.size();
   int k; 
   // Add y
   for (int i = 0; i < nbits_y; ++i) {
     k = c * (pow(2, nbits_y - (i + 1)));
-    cudaq::control(addKFourier, y_reg[i], z_reg, k);
+    cudaq::control(qft_add_const, y_reg[i], z_reg, k);
   }
 }
 
 // Inversion about the mean
-struct reflect_uniform {
-  void operator()(cudaq::qview<> ctrl, cudaq::qview<> tgt) __qpu__ {
-    h(ctrl);
-    x(ctrl);
-    x(tgt);
-    z<cudaq::ctrl>(ctrl, tgt[0]);
-    x(tgt);
-    x(ctrl);
-    h(ctrl);
-  }
-};
+__qpu__ void reflect_uniform(cudaq::qview<> ctrl, cudaq::qview<> tgt) {
+  h(ctrl);
+  x(ctrl);
+  x(tgt);
+  z<cudaq::ctrl>(ctrl, tgt[0]);
+  x(tgt);
+  x(ctrl);
+  h(ctrl);
+}
 
 /**
  * @brief Grover's oracle to search for target_state
  * @param ctrl - Register to search.
  * @param tgt - Qubit on which to apply Toffoli and z-gates.
  */
-struct oracle {
-  const long target_state;
-
-  void operator()(cudaq::qview<> ctrl, cudaq::qview<> tgt) __qpu__ {
-    // Define good search state (secret)
-    for (int i = 1; i <= ctrl.size(); ++i) {
-      auto target_bit_set = (1 << (ctrl.size() - i)) & target_state;
-      if (!target_bit_set) x(ctrl[i - 1]);
-    }
-    // Mark if found
-    x<cudaq::ctrl>(ctrl, tgt[0]);
-    z(tgt[0]);
-    x<cudaq::ctrl>(ctrl, tgt[0]);
-    // Undefine good search state
-    for (int i = 1; i <= ctrl.size(); ++i) {
-      auto target_bit_set = (1 << (ctrl.size() - i)) & target_state;
-      if (!target_bit_set) x(ctrl[i - 1]);
-    }
+__qpu__ void oracle(cudaq::qview<> ctrl, cudaq::qview<> tgt, const long target_state) {
+  // Define good search state (secret)
+  for (int i = 1; i <= ctrl.size(); ++i) {
+    auto target_bit_set = (1 << (ctrl.size() - i)) & target_state;
+    if (!target_bit_set) x(ctrl[i - 1]);
   }
-};
+  // Mark if found
+  x<cudaq::ctrl>(ctrl, tgt[0]);
+  z(tgt[0]);
+  x<cudaq::ctrl>(ctrl, tgt[0]);
+  // Undefine good search state
+  for (int i = 1; i <= ctrl.size(); ++i) {
+    auto target_bit_set = (1 << (ctrl.size() - i)) & target_state;
+    if (!target_bit_set) x(ctrl[i - 1]);
+  }
+}
 
 // Based on pennylane.ai implementation
-struct QFTMult {
-  void operator()(cudaq::qview<> x_reg, cudaq::qview<> y_reg, cudaq::qview<> z_reg) __qpu__ {
-    const int nbits_x = x_reg.size();
-    // const int nbits_z = z_reg.size();
-    int c;
+__qpu__ void qft_mult(cudaq::qview<> x_reg, cudaq::qview<> y_reg, cudaq::qview<> z_reg) {
+  const int nbits_x = x_reg.size();
+  // const int nbits_z = z_reg.size();
+  int c;
 
-    quantumFourierTransform(z_reg);
+  qft(z_reg);
 
-    // Add y repeatedly, scaled by powers of 2 per bit in x
-    for (int i = 0; i < nbits_x; ++i) {
-        c = (pow(2, nbits_x - (i + 1)));
-        cudaq::control(addRegScaled, x_reg[i], y_reg, z_reg, c);
-    }
-
-    cudaq::adjoint(quantumFourierTransform, z_reg);
+  // Add y repeatedly, scaled by powers of 2 per bit in x
+  for (int i = 0; i < nbits_x; ++i) {
+      c = (pow(2, nbits_x - (i + 1)));
+      cudaq::control(add_reg_scaled, x_reg[i], y_reg, z_reg, c);
   }
-};
+
+  cudaq::adjoint(qft, z_reg);
+}
 
 /****************** CUDAQ STRUCTS ******************/
 struct runFactorization {
   __qpu__ auto operator()(const long semiprime,// const long M,
                           const int nbits_x, const int nbits_y, const int nbits_z) {
     // 1. Initialize Registers and Operators
-    QFTMult mult_op;
-    reflect_uniform diffuse_op{};
-    oracle oracle_op{.target_state = semiprime};
+    // qft_mult mult_op;
+    // reflect_uniform diffuse_op{};
+    // oracle oracle_op{.target_state = semiprime};
 
     // Inputs (H for simultaneous simulation of all inputs)
     cudaq::qvector in_reg(nbits_x + nbits_y);  // Register for X and Y
@@ -308,20 +312,20 @@ struct runFactorization {
     int n_iter = (std::numbers::pi/4) * pow(2, (nbits_x+nbits_y)/2) / sqrt(2);
     for (int i = 0; i < n_iter; i++) {
       // 2. Multiply
-      mult_op(x_reg, y_reg, z_reg);
+      qft_mult(x_reg, y_reg, z_reg);
 
       // 3. Grover's Oracle
-      oracle_op(z_reg, tgt.front(1));
+      oracle(z_reg, tgt.front(1), semiprime);
 
       // 4. Undo mult
-      cudaq::adjoint(mult_op, x_reg, y_reg, z_reg);
+      cudaq::adjoint(qft_mult, x_reg, y_reg, z_reg);
 
       // 5. Diffusion to maximize probability
-      diffuse_op(in_reg, tgt.front(1));
+      reflect_uniform(in_reg, tgt.front(1));
     }
 
     // 2. Mult
-    mult_op(x_reg, y_reg, z_reg);
+    qft_mult(x_reg, y_reg, z_reg);
 
     // 3. Measure
     mz(in_reg);
@@ -374,19 +378,16 @@ void display_full_results(std::vector<std::tuple<std::string, size_t>> results, 
   printf("%lu / %lu Shots Correct. (%.2f%%)\n", total_correct, n_shots, (float) 100 * total_correct / n_shots);
 }
 
-// Return the minimum # bits needed to represent some number
-int min_bits(long x) {
-    return ceil(log2(max(std::vector<long>({x, 1})) + 1));
-}
-
 void run_SP_factor(long N) {
   
-  long S = (long) ((float) 1.5 - (float) 0.5 * (float) (N % 6));
+  long S = calculate_S(N);
   printf("S = 1.5 - 0.5*(N %% 6) = %ld\n", S);
-  long M = (N - S)/6 - 1;
-  printf("Z register (R3) initialized to M = -1 + (N-S)/6 = %ld\n", M);
+  long M = calculate_M(N);
+  printf("M = -1 + (N-S)/6 = %ld\n", M);
+  printf("Z register (R3) initialized to %s\n", bin_str(M, min_bits(M)).c_str());
 
   long z = N;
+
   // Necessary # bits computed based on input values. Min 1.
   int nbits_z = 2*min_bits(z);
   int nbits_x = min_bits(sqrt(z)+1);
@@ -415,7 +416,7 @@ void run_SP_factor(long N) {
   printf("\nAdder finished in %s.\n", format_time(duration).c_str());
   std::vector<std::tuple<std::string, size_t>> results = sort_map(counts.to_map());
   printf("\nMEASURED RESULTS\n");
-  display_full_results(results, z, nbits_x, nbits_y, nbits_z, NUM_RESULTS_DISPLAYED);
+  display_full_results(results, N, nbits_x, nbits_y, nbits_z, NUM_RESULTS_DISPLAYED);
   printf("\n");
 }
 
