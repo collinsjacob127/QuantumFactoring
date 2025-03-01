@@ -1,0 +1,28 @@
+\begin{thebibliography}{1}
+\expandafter\ifx\csname url\endcsname\relax
+  \def\url#1{\texttt{#1}}\fi
+\expandafter\ifx\csname urlprefix\endcsname\relax\def\urlprefix{URL }\fi
+
+\bibitem{tag}
+Author JK.
+\newblock Name of paper.
+\newblock Abbrev Title of Periodical Month 2018;\hspace{0pt}x(xx):yyy--zzz.
+
+\bibitem{ito}
+et~al. MI.
+\newblock Application of amorphous oxide tft to electrophoretic display,.
+\newblock J Non Cryst Solids 2008;\hspace{0pt}354(19):2777--2782.
+
+\bibitem{fardel}
+Fardel R, Nagel M, Nuesch F, Lippert T, Wokaun A.
+\newblock Fabrication of organic light emitting diode pixels by laser-assisted
+  forward transfer.
+\newblock Appl Phys Lett Aug. 2007;\hspace{0pt}91(6):Art. no. 061103.
+
+\bibitem{buncombe}
+Buncombe J.
+\newblock Infrared navigation part i: Theory.
+\newblock IEEE Trans Aerosp Electron Syst Sep.
+  1944;\hspace{0pt}AES-4(3):352--377.
+
+\end{thebibliography}
