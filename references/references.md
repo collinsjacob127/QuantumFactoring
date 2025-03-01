@@ -1,6 +1,12 @@
 # References
 
-## Related Articles / Papers
+## Research Papers
+
+- [Quantum Factoring with Grover's Algorithm](https://arxiv.org/abs/2312.10054)
+
+- [Quantum Arithmetic with the Quantum Fourier Transform](https://arxiv.org/pdf/1411.5949)
+
+## Articles
 
 - [Interferometric single-shot parity measurement in InAs–Al hybrid devices (Background for MS Majorana 1)](https://www.nature.com/articles/s41586-024-08445-2)
 
