@@ -27,7 +27,8 @@
 #define ENABLE_MISC_DEBUG false
 #define ENABLE_STATEVECTOR false
 
-#define NUMBER_OF_SHOTS 100
+//#define NUMBER_OF_SHOTS 100
+#define NUMBER_OF_SHOTS 1
 #define NUM_RESULTS_DISPLAYED 5
 
 /**************************************************
@@ -167,7 +168,6 @@ __qpu__ void setInt(const long val, cudaq::qview<> qs, bool qorder=true) {
 
 // Converted from qml function
 // https://docs.pennylane.ai/en/stable/_modules/pennylane/templates/subroutines/qft.html#QFT
-// ~WORKS PERFECTLY~
 __qpu__ void quantumFourierTransform(cudaq::qview<> qs) {
   const int nbits = qs.size();
   int shift_len = nbits-1;
