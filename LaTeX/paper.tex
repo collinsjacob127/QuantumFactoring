@@ -1,0 +1,175 @@
+% -*- Mode:TeX -*-
+% LaTeX template for CinC papers                   v 1.1a 22 August 2010
+%
+% To use this template successfully, you must have downloaded and unpacked:
+%       http://www.cinc.org/authors_kit/papers/latex.tar.gz
+% or the same package in zip format:
+%       http://www.cinc.org/authors_kit/papers/latex.zip
+% See the README included in this package for instructions.
+%
+% If you have questions, comments or suggestions about this file, please
+% send me a note!  George Moody (george@mit.edu)
+%
+\documentclass[twocolumn]{cinc}
+\usepackage{graphicx}
+\begin{document}
+\bibliographystyle{cinc}
+
+% Keep the title short enough to fit on a single line if possible.
+% Don't end it with a full stop (period).  Don't use ALL CAPS.
+\title{Leveraging Grover's Algorithm for Efficient Prime Decomposition}
+
+% Both authors and affiliations go in the \author{ ... } block.
+% List initials and surnames of authors, no full stops (periods),
+%  titles, or degrees.
+% Don't use ALL CAPS, and don't use ``and'' before the name of the
+%  last author.
+% Leave an empty line between authors and affiliations.
+% List affiliations, city, [state or province,] country only
+%  (no street addresses or postcodes).
+% If there are multiple affiliations, use superscript numerals to associate
+%  each author with his or her affiliations, as in the example below.
+
+% \author {Jacob Collins$^{1}$, Jaime Raigoza$^{1}$, Sam Siewert$^{1}$ \\
+\author {Jacob Collins$^{1}$, Jaime Raigoza$^{1}$, Sam Siewert$^{1}$ \\
+\ \\ % leave an empty line between authors and affiliation
+ $^1$ California State University, Chico, United States of America (note- full address at end of paper)}
+
+\maketitle
+
+% LaTeX inserts the ``Abstract'' heading in the proper style and
+% sets the text of the abstract in italics as required.
+\begin{abstract}
+
+  In quantum computing, SP (semiprime) factoring is typically performed 
+  with Shor's algorithm, but it is possible to achieve the same results
+  more efficientily via Grover's algorithm\cite{whitlock2023quantumfactoringalgorithmusing}. 
+
+  Grover's Algorithm is used to search for one (or many) given state(s)
+  among some set of possible outputs. In this case, given some semiprime,
+  Grover's algorithm may be used to find the prime factors.
+
+  The abstract with its heading should not be more than 100 mm long,
+  which is equivalent to 25 lines of text. Leave 2 line spaces at the
+  bottom of the abstract before continuing with the next heading.
+
+
+\end{abstract}
+% LaTeX inserts the extra space here automatically.
+
+\section{Introduction}
+
+What are we doing, broadly?
+
+Include a figure of our circuit diagram and briefly describe what it 
+does, and how it does it.
+
+  \subsection{Motivation}
+
+  Why are we replicating the research, why is this important.
+
+  \subsection{Semiprime Factoring}  
+
+  What is SP factoring and why is it important. RSA, etc.
+
+\section{Methodology}
+ 
+Quantum algorithms take advantage of superposition and entanglement,
+allowing this form of computation to perform operations on many 
+values simultaneously, rather than checking each value individually
+as is necessary in classical algorithms.
+
+  \subsection{Using Grover's Algorithm to Invert Functions} 
+
+  Describe how Grover's works and show figures of a generalized
+  circuit for Grover's to invert functions
+
+  \subsection{Semiclassical Arithmetic} 
+
+  Describe our original approach- bitwise addition, registers, operations, etc.
+
+  Mention why an alternative approach was needed.
+
+  \subsection{Arithmetic in the Quantum Fourier Domain}  
+
+  Describe the updated methods of quantum arithmetic, and how it solved the 
+  previous problems.
+
+  Figures to visualize how the weighted phase shifts work to produce
+  expected results matching addition, scaled addition, and register 
+  multiplication.
+
+\section{Results and Discussion}
+
+Include some charts showing our runtime and qubit requirements vs N.
+
+  \subsection{Accuracy and Limitations}
+
+  How precise and accurate were our measurements. Mention edge-cases like
+  square semiprimes, etc.
+
+  How many qubits were we able to simulate, i.e., how large of semiprimes
+  can we factor with our current systems.
+
+  \subsection{Comparison to Shor's Algorithm}
+
+  List strengths and weaknesses of Shor's, i.e., more documentation, more
+  examples, larger code base to reference, but ours is faster and uses less
+  qubits.
+
+\section{Conclusion}
+
+
+
+\section{Future Work}
+ 
+The text on the final page should be arranged so that both columns are
+approximately the same length.
+
+\balance
+
+\section*{Acknowledgments}  
+% This section is not numbered.
+% 
+Acknowledge the source paper.
+
+
+% LateX generates the ``References'' heading automatically and switches
+% to 9 point type for the bibliography.  Please  use BibTeX and
+% follow the examples in the sample 'refs.bib' file to enter your references.
+\bibliography{refs}
+
+% If you don't use BibTeX (why not?) , comment out or remove the previous
+% line, and uncomment the following lines up to the ``}\end{bibliography}''
+% line below:
+%\begin{thebibliography}{99}{ %\small
+% \bibitem{tag} (General form) J. K. Author, ``Name of paper,''
+%   \emph{Abbrev. Title of
+%   Periodical}, vol. x, no. x, pp. xxx--xxx, Abbrev. Month, year. 
+
+% \bibitem{ito}  M. Ito et al., ``Application of amorphous oxide TFT to
+%   electrophoretic display,'' \emph{J. Non-Cryst. Solids}, vol. 354, no. 19,
+%   pp. 2777--2782, Feb. 2008.
+  
+% \bibitem{fardel}  R. Fardel, M. Nagel, F. Nuesch, T. Lippert, and
+%   A. Wokaun, ``Fabrication of organic light emitting diode pixels by
+%   laser-assisted forward transfer,'' \emph{Appl. Phys. Lett.}, vol. 91,
+%   no. 6, Aug. 2007, Art. no. 061103.
+  
+% \bibitem{buncombe} J. U. Buncombe, ``Infrared navigation Part I: Theory,''
+%     \emph{IEEE Trans. Aerosp. Electron. Syst.}, vol. AES-4, no. 3,
+%     pp. 352--377, Sep. 1944.
+      
+% Uncomment the following line if you are not using BibTeX.
+%}\end{thebibliography}
+
+
+% LaTeX inserts the ``Address for correspondence'' heading.
+\begin{correspondence}
+Jacob Collins\\
+1565 Filbert Ave\\
+jbcollins@csuchico.edu
+\end{correspondence}
+
+\end{document}
+

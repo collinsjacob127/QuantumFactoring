@@ -1,4 +1,6 @@
-file: README
+[comment]: <> (file: README)
+
+`make` builds [paper.pdf](paper.pdf) and [template.pdf](template.pdf). References are in [refs.bib](refs.bib).
 
 Writing a CinC Paper Using LaTeX
 
