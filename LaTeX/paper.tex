@@ -31,9 +31,9 @@
 %  each author with his or her affiliations, as in the example below.
 
 % \author {Jacob Collins$^{1}$, Jaime Raigoza$^{1}$, Sam Siewert$^{1}$ \\
-\author {Jacob Collins$^{1}$, Jaime Raigoza$^{1}$, Sam Siewert$^{1}$ \\
+\author{Jacob Collins$^{1}$, Jaime Raigoza$^{1}$, Sam Siewert$^{1}$ \\
 \ \\ % leave an empty line between authors and affiliation
- $^1$ California State University, Chico, United States of America (note- full address at end of paper)}
+ $^1$ California State University, Chico, United States (note- full address at end of paper)}
 
 \maketitle
 
@@ -91,8 +91,8 @@ at which some quantum algorithm may be able to out-perform our best classical
 solution to the same problem.
 
 Grover's algorithm has an incredibly wide range of potential use-cases,
-and an intention for this paper is to provide a generalized reference point
-for how Grover's algorithm may be used to invert any function.
+and an intention for this paper is to provide a generalized reference
+for how Grover's algorithm may be used to invert a given function.
 
 \section{Literature Review}
 
@@ -104,9 +104,10 @@ for how Grover's algorithm may be used to invert any function.
   
   Given a function $f(x)=y$, where $x$ is unknown (index, prime factors, 
   sum components, etc.), and $y$ is known (array value, semiprime/product, 
-  sum, etc.), Grover's algorithm effectively takes the role of $f'(y)$, 
-  allowing for a potential speedup in finding whatever input(s) to $f(x)$
-  will return $y$.
+  sum, etc.), Grover's algorithm effectively takes the role of $f'(y)=x$, 
+  allowing for a potential speedup in finding whatever input (s) to $f(x)$
+  will return $y$, provided that it is much faster to compute $f(x)$ than
+  whatever classical methods might be used to otherwise solve for $x$ given $y$.
 
   This speedup comes from the fact that Grover's algorithm requires 
   $O(\sqrt{y})$ iterations, each of which have a time complexity proportional
@@ -114,23 +115,45 @@ for how Grover's algorithm may be used to invert any function.
 
   \subsection{Shor's Algorithm}
 
-  Description of Shor's algorithm.
+  Shor's algorithm is the most well-known approach to prime factorization
+  in quantum computing. However, there are many drawbacks to this approach,
+  the most notable of which being the need to take measurements mid-circuit
+  and essentially re-run with new values afterwards, which introduces a 
+  significant amount of overhead. Even recently improved versions of Shor's
+  algorithm still require a minimum of $2n+1$ qubits, and tend to be 
+  extremely sensitive to noise, which leads to high error\cite{quantum_factoring,shor}.
+
+  Furthermore, when it comes to more concrete applications of Shor's algorithm,
+  a full-scale implementation of this algorithm to factor an $n$-bit number
+  may require up to $5n+1$ qubits for accurate results, and require 
+  on the order of $n^3$ operations~\cite{quantum_fac_efficient}.
 
   \subsection{Quantum Factoring Algorithm with Grover Search}
 
-  S. Whitlock, et al. present a method of SP factoring with Grover's
+  S. Whitlock, et al.\ present a method of SP factoring with Grover's
   algorithm. The implementation in their paper is highly optimized,
   and modifies the target value in their circuit from some semiprime $N$,
-  to $M$, a reduced number uniquely tied to $N$, which has prime factors
-  $p$ and $q$. 
+  to $M$, a reduced number uniquely tied to $N$, which has unique factors 
+  $p$ and $q$ which can be used to calculate $a, b$, the prime factors of 
+  $N$. This optimization from $N$ to $M$ allows the implementation to ignore
+  the trivial prime factors $2$ and $3$, and requires fewer qubits than would
+  otherwise be needed to search for prime factors of $N$~\cite{quantum_factoring}.
 
   While this approach is admirable, it introduces a level of complexity 
-  that may hinder a learner's understanding of the mechanics at play,
-  so the implementation shown in section \ref{sec:Methodology} forgoes
+  that may hinder a learner's understanding of the mechanics at work,
+  so the implementation shown in section\ \ref{sec:Methodology} forgoes
   this abstraction from $N$ to $M$, and instead implements an oracle which
   searches directly for prime factors $a$ and $b$ of a semiprime $N$.
 
-\section{Methodology} \label{sec:Methodology}
+\section{Methodology}\label{sec:Methodology}
+
+\begin{figure*}[!ht]\label{fig:FIGURA1}
+\centering
+% \includegraphics[width=7.9cm]{grover_inversion.png}
+\includegraphics[width=15.8cm]{grover_inversion.png}
+\caption{General circuit diagram for Grover's Algorithm, used to find 
+the inputs $x, y$ for which $f(x,y)=z$, for some known output $z$.}
+\end{figure*}
 
 Quantum algorithms take advantage of superposition and entanglement,
 which enables many methods of computation which are otherwise impossible
@@ -147,36 +170,78 @@ register that number may be represented similarly as $| 0011 \rangle$.
 
   \subsection{Grover's Algorithm for General Function Inversion} 
 
-  Mention unitary matrices.
+  Operations can be performed on a set of input registers that start in uniform 
+  superposition, and these operations will affect each potential state individually. 
+  The properties of superposition are utilized by Grover's Oracle to selectively 
+  modify the states $|x,y\rangle$ in the input registers $R_x$ and $R_y$,
+  marking them as valid by setting them to $-|x,y\rangle$, only when the output register
+  $R_z$ matches some known search term $z$. An outline of a quantum circuit for
+  Grover's algorithm is seen in Figure~\ref{fig:FIGURA1}.
 
-  Describe how Grover's works and show figures of a generalized
-  circuit for Grover's to invert functions
-
-  Reference figure 1.
-
-  Operations can be performed on a register in superposition, and these operations
-  will affect each potential state individually. This property is utilized by
-  Grover's Oracle to selectively target specific states which match the target
-  value, and the diffuser is used to increase the probability of measuring the
-  inputs which resulted in this marked target state.
-
-  \begin{figure}[h]
-  %\centering
-  \includegraphics[width=7.9cm]{grover_inversion.png}
-  \caption{General circuit diagram for Grover's Algorithm, used to find 
-  the inputs $x, y$ for which $f(x,y)=z$, for some known $z$.}
-  \label{FIGURA1}
+  The oracle in Grover's algorithm performs a controlled operation which is meant
+  to differentiate states $x,y$ that do result in the wanted target $z$ from 
+  states $x,y$ that do not result in the target $z$.
+  
+  \begin{figure}[h]\label{fig:FIGURA2}
+  \centering
+  \includegraphics[width=6.0cm]{oracle_15.png}
+  % \includegraphics[width=7.9cm]{oracle_15.png}
+  \caption{Example circuit diagram for Grover's oracle marking states of the input
+  registers $R_x$ and $R_y$ ($[q_0,q_2]$ and $[q_3,q_5]$, respectively) which
+  result in $z=15$.}
   \end{figure}
 
-  Include one figure showing the oracle, and one figure showing the diffuser.
+  Figure~\ref{fig:FIGURA2} shows an example of the oracle searching for the state $z=15$,
+  or rather, $R_z=|001111\rangle$. To implement a circuit which can selectively target
+  $z=15$, Toffoli gates (otherwise known as NOT, or X gates) are applied on 
+  $R_z[0]$ and $R_z[1]$, so that states where $R_z=|001111\rangle$ will temporarily be in
+  state $R_z=|111111\rangle$, and the multi-controlled Toffoli gates\cite{multi_toffoli}
+  will apply only for the desired states. These operations are then performed again,
+  returning all but the target qubit (which has the Z-gate applied) to their original
+  states.
+
+  \begin{figure}[h]\label{fig:FIGURA3}
+  \centering
+  % \includegraphics[width=7.9cm]{diffuse.png}
+  \includegraphics[width=5.0cm]{diffuse.png}
+  \caption{Example circuit diagram for a diffuser which amplifies the probability that
+  measurement will result in a state which has been marked by the oracle.
+  Input registers $R_x$ and $R_y$ (q0-q2 and q3-q5, respectively) after diffusion are 
+  more likely to be measured in a state such that $f(R_x,R_y)$ results in $R_z=|z\rangle$.}
+  \end{figure}
+
+  The diffuser in Grover's algorithm (Figure~\ref{fig:FIGURA3}) can then increase the 
+  probability of observing $-|x,y\rangle$ (states which have been marked by the oracle) 
+  through a process known as inversion about the mean.
 
   \subsection{Semiclassical Arithmetic} 
 
-  Describe our original approach- bitwise addition, registers, operations, etc.
+  As a proof of concept (prior to the release of~\cite{quantum_factoring}),
+  a function $f(x,y)=x+y$ is defined such that $R_x=|x\rangle$, $R_y=|y\rangle$,
+  and after performing $f(R_x,R_y)$, the output register $R_z$ shall be in the
+  state $|x+y\rangle$.
+  
+  This approach was implemented in a similar manner to a classical full-adder,
+  and worked on quantum simulators with $100\%$ accuracy~\cite{quantum_full_adder}.
 
-  Mention why an alternative approach was needed.
+  The semiclassical full-adder indeed works with Grover's algorithm, states were
+  filtered to only measure inputs which resulted in a sum matching some given value.
+  This is a trivial problem however, and only has potential usefulness due to the 
+  relationship between multiplication and addition.
 
-  Include a drawing of the circuit.
+  Semiclassical arithmetic does have significant drawbacks, however. Despite
+  being relatively simple to implement due to the similarity with principles
+  that have a much broader range of documentation, the classical nature of this
+  implementation meant that in order to move to multiplication from this point,
+  the value of one register would need to be measured, and $R_x$ would then be
+  added to $R_z$ a number of times dependent on the value of $y$.
+
+  Measuring the state of either input register would collapse the superposition,
+  and break the underlying principles on which Grover's algorithm depends. Thus,
+  a different approach became necessary- one that could bridge the gap between 
+  addition and multiplication without needing to measure either register,
+  so that the operation can still work with inputs that are in superposition,
+  allowing the use of Grover's algorithm.
 
   \subsection{Arithmetic in the Quantum Fourier Domain}  
 
@@ -214,8 +279,6 @@ we see quantum advantage based on our results, etc.
  
 Implementation of the optimization with M, S, p, and q, rather than just 
 a and b from N.
-
-\balance
 
 \section*{Acknowledgments}  
 % This section is not numbered.
@@ -259,6 +322,8 @@ Jacob Collins\\
 1565 Filbert Ave\\
 jbcollins@csuchico.edu
 \end{correspondence}
+
+\balance
 
 \end{document}
 
