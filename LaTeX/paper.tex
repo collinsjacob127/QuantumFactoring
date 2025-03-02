@@ -17,7 +17,7 @@
 
 % Keep the title short enough to fit on a single line if possible.
 % Don't end it with a full stop (period).  Don't use ALL CAPS.
-\title{Leveraging Grover's Algorithm for Efficient Prime Decomposition}
+\title{Quantum Semiprime Factorization: Leveraging Grover's Algorithm for Efficient Prime Decomposition}
 
 % Both authors and affiliations go in the \author{ ... } block.
 % List initials and surnames of authors, no full stops (periods),
@@ -43,11 +43,9 @@
 
   In quantum computing, SP (semiprime) factoring is typically performed 
   with Shor's algorithm, but it is possible to achieve the same results
-  more efficientily via Grover's algorithm\cite{whitlock2023quantumfactoringalgorithmusing}. 
+  more efficientily via Grover's algorithm\cite{quantum_factoring, grover}. 
 
-  Grover's Algorithm is used to search for one (or many) given state(s)
-  among some set of possible outputs. In this case, given some semiprime,
-  Grover's algorithm may be used to find the prime factors.
+  Key terms: Semiprime, superposition, entanglement, RSA encryption, (add more).
 
   The abstract with its heading should not be more than 100 mm long,
   which is equivalent to 25 lines of text. Leave 2 line spaces at the
@@ -59,7 +57,15 @@
 
 \section{Introduction}
 
-What are we doing, broadly?
+The practicality of applied quantum computing is a topic of much debate,
+and there are not many examples of quantum computers being able to out-perform
+their classical counterpart, yet.
+
+Quantum algorithms have been in development at a theoretical level for
+decades, but the application of these methods is still in early stages.
+It is quite common to find code which implements a quantum algorithm like
+Grover's or Shor's, but very often these programs are hard-coded, and only
+work for a small handful of specific values\cite{shors_ibm}.
 
 Include a figure of our circuit diagram and briefly describe what it 
 does, and how it does it.
@@ -68,38 +74,109 @@ does, and how it does it.
 
   Why are we replicating the research, why is this important.
 
+  Quantum computers are a technology very much still under development. 
+  As such, one of the major limitations for applied quantum computing is 
+  the number of qubits required to perform a given task. If it can be verified 
+  that SP factoring with Grover's algorithm uses significantly less qubits than
+  Shor's, then the application of these techniques will be feasible far sooner.
+
   \subsection{Semiprime Factoring}  
 
   What is SP factoring and why is it important. RSA, etc.
 
 \section{Goals}
 
-Demonstration of quantum advantage, or at least determination of
-the problem scale at which quantum advantage will pull ahead. 
+The goal of this research endeavor is to estimate the problem scaling point
+at which some quantum algorithm may be able to out-perform our best classical
+solution to the same problem.
+
+Grover's algorithm has an incredibly wide range of potential use-cases,
+and an intention for this paper is to provide a generalized reference point
+for how Grover's algorithm may be used to invert any function.
 
 \section{Literature Review}
 
-Discuss existing methods of SP factoring- both quantum and classical.
+  \subsection{Grover's Algorithm}
 
-Mention reference paper, QFT arithmetic, CUDA-Q docs, shor's, grover's.
+  Grover's Algorithm is a quantum computing method 
+  that can be used to search a database in $O(\sqrt{n})$ time 
+  rather than the naive classical time complexity of $O(n)$\cite{grover}. 
+  
+  Given a function $f(x)=y$, where $x$ is unknown (index, prime factors, 
+  sum components, etc.), and $y$ is known (array value, semiprime/product, 
+  sum, etc.), Grover's algorithm effectively takes the role of $f'(y)$, 
+  allowing for a potential speedup in finding whatever input(s) to $f(x)$
+  will return $y$.
 
-\section{Methodology}
- 
+  This speedup comes from the fact that Grover's algorithm requires 
+  $O(\sqrt{y})$ iterations, each of which have a time complexity proportional
+  to that of $f(x)$.
+
+  \subsection{Shor's Algorithm}
+
+  Description of Shor's algorithm.
+
+  \subsection{Quantum Factoring Algorithm with Grover Search}
+
+  S. Whitlock, et al. present a method of SP factoring with Grover's
+  algorithm. The implementation in their paper is highly optimized,
+  and modifies the target value in their circuit from some semiprime $N$,
+  to $M$, a reduced number uniquely tied to $N$, which has prime factors
+  $p$ and $q$. 
+
+  While this approach is admirable, it introduces a level of complexity 
+  that may hinder a learner's understanding of the mechanics at play,
+  so the implementation shown in section \ref{sec:Methodology} forgoes
+  this abstraction from $N$ to $M$, and instead implements an oracle which
+  searches directly for prime factors $a$ and $b$ of a semiprime $N$.
+
+\section{Methodology} \label{sec:Methodology}
+
 Quantum algorithms take advantage of superposition and entanglement,
-allowing this form of computation to perform operations on many 
-values simultaneously, rather than checking each value individually
-as is necessary in classical algorithms.
+which enables many methods of computation which are otherwise impossible
+with a classical computer. For example, by placing a set of $n$ qubits 
+(otherwise known as a qubit \textbf{register}) in superposition, that register
+simultaneously represents every value which can be represented in $n$ bits,
+until measured. Once measured, a register in uniform superposition will 
+collapse into one of these states with equal likelihood.
 
-  \subsection{Using Grover's Algorithm to Invert Functions} 
+In a given register $R_n$ with $n$ qubits, values are represented in binary,
+such, for example, if some number $N=3$ were to be represented classically
+with $n=4$ bits, it might be seen in binary as $0011$, and on a qubit
+register that number may be represented similarly as $| 0011 \rangle$.
+
+  \subsection{Grover's Algorithm for General Function Inversion} 
+
+  Mention unitary matrices.
 
   Describe how Grover's works and show figures of a generalized
   circuit for Grover's to invert functions
+
+  Reference figure 1.
+
+  Operations can be performed on a register in superposition, and these operations
+  will affect each potential state individually. This property is utilized by
+  Grover's Oracle to selectively target specific states which match the target
+  value, and the diffuser is used to increase the probability of measuring the
+  inputs which resulted in this marked target state.
+
+  \begin{figure}[h]
+  %\centering
+  \includegraphics[width=7.9cm]{grover_inversion.png}
+  \caption{General circuit diagram for Grover's Algorithm, used to find 
+  the inputs $x, y$ for which $f(x,y)=z$, for some known $z$.}
+  \label{FIGURA1}
+  \end{figure}
+
+  Include one figure showing the oracle, and one figure showing the diffuser.
 
   \subsection{Semiclassical Arithmetic} 
 
   Describe our original approach- bitwise addition, registers, operations, etc.
 
   Mention why an alternative approach was needed.
+
+  Include a drawing of the circuit.
 
   \subsection{Arithmetic in the Quantum Fourier Domain}  
 
