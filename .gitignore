@@ -3,3 +3,10 @@
 *.x
 prime_generator/
 .vscode/
+
+
+*.aux
+*.bbl
+*.blg
+*.log
+
