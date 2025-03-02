@@ -99,8 +99,19 @@ for how Grover's algorithm may be used to invert a given function.
   \subsection{Grover's Algorithm}
 
   Grover's Algorithm is a quantum computing method 
-  that can be used to search a database in $O(\sqrt{n})$ time 
+  that can be used to search a database of $n$ values in $O(\sqrt{n})$ time 
   rather than the naive classical time complexity of $O(n)$\cite{grover}. 
+
+  The exact number of iterations required varies on a case-by-case basis,
+  but is typically expressed as follows: in a search for one matching input
+  state, $\frac{\pi}{4}\sqrt{N}$ iterations are required, and in a search
+  for $k$ valid input states, $\sqrt{\pi}{4}\cdot \sqrt{\frac{N}{k}}$
+  iterations are required, where $N$ is the size of the search domain.
+
+  In most cases, $N=2^n$, where $n$ is the number of bits needed to represent
+  the target value. This is by no means a steadfast rule, and is meant as 
+  a helpful starting point for any confused readers attempting to implement
+  something similar themselves.
   
   Given a function $f(x)=y$, where $x$ is unknown (index, prime factors, 
   sum components, etc.), and $y$ is known (array value, semiprime/product, 
