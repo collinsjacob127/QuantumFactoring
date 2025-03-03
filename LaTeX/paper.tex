@@ -12,6 +12,7 @@
 %
 \documentclass[twocolumn]{cinc}
 \usepackage{graphicx}
+\usepackage{dblfloatfix}
 \begin{document}
 \bibliographystyle{cinc}
 
@@ -33,7 +34,7 @@
 % \author {Jacob Collins$^{1}$, Jaime Raigoza$^{1}$, Sam Siewert$^{1}$ \\
 \author{Jacob Collins$^{1}$, Jaime Raigoza$^{1}$, Sam Siewert$^{1}$ \\
 \ \\ % leave an empty line between authors and affiliation
- $^1$ California State University, Chico, United States (note- full address at end of paper)}
+ $^1$ California State University, Chico, United States}
 
 \maketitle
 
@@ -41,15 +42,34 @@
 % sets the text of the abstract in italics as required.
 \begin{abstract}
 
-  In quantum computing, SP (semiprime) factoring is typically performed 
-  with Shor's algorithm, but it is possible to achieve the same results
-  more efficientily via Grover's algorithm\cite{quantum_factoring, grover}. 
+  This paper details some of the first steps that our research group has
+  taken towards a practical demonstration of quantum advantage. 
 
-  Key terms: Semiprime, superposition, entanglement, RSA encryption, (add more).
+  Grover's search algorithm can be leveraged to efficiently compute the inverse 
+  of many functions; this is addressed both from a general perspective, as well as
+  specific applications, including inversion of multiplication,
+  thereby finding the factors of semiprimes with greater efficiency 
+  than classical HPC methods and similar existing quantum algorithms.
+  
+  RSA encryption relies on the fact that the multiplication of large
+  prime numbers is a trap-door function- computationally trivial to compute
+  the semiprime product, but classical methods of finding prime components
+  is so computationally expensive that it can be considered nearly impossible
+  at a large scale. This principle is the backbone of 
+  modern-day cybersecurity~\cite{FergusonSchneier2003}.
 
-  The abstract with its heading should not be more than 100 mm long,
-  which is equivalent to 25 lines of text. Leave 2 line spaces at the
-  bottom of the abstract before continuing with the next heading.
+  % In quantum computing, SP (semiprime) factoring is typically performed 
+  % with Shor's algorithm, but it is possible to achieve the same results
+  % more efficientily via Grover's algorithm\cite{quantum_factoring, grover}. 
+  %
+  \textbf{Key terms:} Semiprime, superposition, entanglement, Grover's algorithm, 
+  Shor's algorithm, quantum fourier transform, adjoint, RSA encryption, 
+  quantum advantage, RSA number, reversible function, trap-door function,
+  quantum circuit, scaling, parallel, CUDA, CUDA-Q, sieve, time complexity.
+  %
+  % The abstract with its heading should not be more than 100 mm long,
+  % which is equivalent to 25 lines of text. Leave 2 line spaces at the
+  % bottom of the abstract before continuing with the next heading.
 
 
 \end{abstract}
@@ -58,49 +78,122 @@
 \section{Introduction}
 
 The practicality of applied quantum computing is a topic of much debate,
-and there are not many examples of quantum computers being able to out-perform
-their classical counterpart, yet.
+and there are not yet many examples of quantum computers being able to out-perform
+their classical counterpart, a feat known as quantum advantage.
 
 Quantum algorithms have been in development at a theoretical level for
 decades, but the application of these methods is still in early stages.
 It is quite common to find code which implements a quantum algorithm like
-Grover's or Shor's, but very often these programs are hard-coded, and only
+Grover's\cite{grover} or Shor's\cite{shor}, but very often these 
+programs are hard-coded, and only
 work for a small handful of specific values\cite{shors_ibm}.
 
-Include a figure of our circuit diagram and briefly describe what it 
-does, and how it does it.
+This paper describes the generalized use of Grover's algorithm as the
+inverse of some function $F(x, y) = z$, with demonstrated applications
+inverting the arithmetic functions addition and multiplication. The 
+inverse of multiplication is a solution to prime factorization- a 
+non-trivial problem with significant implications for cybersecurity
+at a global scope.
+
+\begin{figure}[ht]\label{fig:FIGURA1}
+\centering
+\includegraphics[width=7.9cm]{grover_inversion.png}
+% \includegraphics[width=15.8cm]{grover_inversion.png}
+% \includegraphics[width=14cm]{grover_inversion.png}
+\caption{General circuit diagram for Grover's Algorithm, used to find 
+the inputs $x, y$ for which $f(x,y)=z$, for some known output $z$.}
+\end{figure}
+
+  \subsection{Goals}
+
+  The objective of this research is to clearly demonstrate quantum advantage 
+  by showing clear speed-up to solve the same problem at the same scale.
+
+  Some of the major limitations for applied quantum computing are 
+  the number of qubits required to perform a given task, the likelihood of errors
+  in measurement, and the overhead associated with running circuits on real-world
+  quantum computers. 
+  
+  % Today many functions are reversible with digital computing (while not adiabatic), 
+  % but not all. For example, a discrete cosine transformation or Fourier transform 
+  % can be reversed, but for other algorithms, the only option for reversal is 
+  % brute-force search or getting lucky. For example, optimizing a function can be 
+  % done by trial and error with Monte Carlo guessing, and the possible solutions can 
+  % be quickly tested for optimality, but many functions cannot be easily optimized 
+  % short of brute-force search or Monte Carlo. Other examples being considered by 
+  % our group include subset sums, path planning, and machine learning gradient descent.
+  %
+  While the semiprime factoring problem is just one algorithm where quantum circuits 
+  should have significant advantage over parallel factoring, 
+  the goal of this research is to concretely show that this particular problem is 
+  in fact a clear case of quantum advantage.
+
+  Furthermore, the longer-term goal is to identify the types of algorithms that 
+  likewise may have significant quantum advantage based upon reversible functions.
+
+  Grover's algorithm can be used to provide a very efficient search, 
+  which is in essence a content addressable memory that works at a scale limited only by qubit scaling.
+
+  One of the major intentions for this paper is demonstration of the broad utility of Grover's 
+  algorithm, and to provide a general reference
+  for how Grover's algorithm may be used to invert a given function.
 
   \subsection{Motivation}
 
-  Why are we replicating the research, why is this important.
+  Semiprime factoring is an ideal problem for demonstrating quantum advantage,
+  as it is both challenging to compute classicaly, and has wide-reaching
+  impact if efficient solutions are found.
 
-  Quantum computers are a technology very much still under development. 
-  As such, one of the major limitations for applied quantum computing is 
-  the number of qubits required to perform a given task. If it can be verified 
-  that SP factoring with Grover's algorithm uses significantly less qubits than
-  Shor's, then the application of these techniques will be feasible far sooner.
+  Semiprime factoring is known to have a high time complexity due to the nature of
+  prime number generation with a sieve (filters out all non-primes) and trial division search.
+  This problem in particular becomes complex for large size semiprimes commonly used in 
+  encryption, which might be 4096 bits or more. 
+  Even a 128-bit semiprime, which is the product of two 64-bit primes requires time complexity
+  that is beyond polynomial, and therefore requires a parallel computer to solve today. 
 
-  \subsection{Semiprime Factoring}  
+  This is important since the simplicity of multiplying two large primes enables fast encryption of data, 
+  but the complexity of factoring semiprimes ensures privacy so that data can only be accessed by someone possessing a private key 
+  (one of the primes that compose the semiprime used for encryption).
 
-  What is SP factoring and why is it important. RSA, etc.
+  Data privacy hinges on this one-way function, called a trap-door, where factoring 
+  is beyond P complexity, but trivial if one possesses the required key. 
 
-\section{Goals}
+  If a quantum computer makes SP factoring as simple as SP computation, given a 
+  reversible quantum circuit, then this means all encryption can potentially 
+  be broken by such a quantum circuit. 
 
-The goal of this research endeavor is to estimate the problem scaling point
-at which some quantum algorithm may be able to out-perform our best classical
-solution to the same problem.
+  The only safety now for encryption is scaling the key size (semiprime) to keep 
+  it larger than the largest quantum computer number of qubits.
 
-Grover's algorithm has an incredibly wide range of potential use-cases,
-and an intention for this paper is to provide a generalized reference
-for how Grover's algorithm may be used to invert a given function.
+  For example, the RSA number 250, which is 892-bits long, was only recently factored using a parallel computer. 
+  The idea of factoring 4096 or bigger is nearly impossible even with the largest parallel computers available~\cite{FergusonSchneier2003}. 
+
+  However, a quantum computer has a much lower time complexity if the number of qubits
+  can be scaled to implement a quantum circuit that can factor a semiprime. Ongoing research
+  at China State Key Laboratories suggests that they have been making significant
+  progress in breaking RSA encryption, considering their 48-bit demo using 10 qubits
+  in 2022~\cite{yan2022factoringintegerssublinearresources}. Furthermore, they claim
+  that with the techniques they have been using, it would be possible to break
+  RSA 2048 with a quantum circuit which needs only 372 qubits, far less than the
+  1,121 qubit machine currently available in the United 
+  States with IBM's Condor~\cite{abughanem2024ibmquantumcomputersevolution}.
+
+  The typical approach to semiprime factoring on a quantum computer is 
+  with Shor's algorithm, but there are many drawbacks to this approach,
+  and has not yet been observed to be practically advantageous.
+
+  If it can be verified that SP factoring with Grover's algorithm
+  uses significantly less qubits than Shor's, has less error, or has less overhead,
+  then the application of quantum semiprime factoring at a meaningful scale 
+  will be feasible far sooner.
 
 \section{Literature Review}
 
   \subsection{Grover's Algorithm}
 
   Grover's Algorithm is a quantum computing method 
-  that can be used to search a database of $n$ values in $O(\sqrt{n})$ time 
-  rather than the naive classical time complexity of $O(n)$\cite{grover}. 
+  that can be used to search a database of $N$ values in $O(\sqrt{N})$ time 
+  rather than the naive classical time complexity of $O(N)$\cite{grover}. 
 
   The exact number of iterations required varies on a case-by-case basis,
   but is typically expressed as follows: in a search for one matching input
@@ -141,14 +234,16 @@ for how Grover's algorithm may be used to invert a given function.
 
   \subsection{Quantum Factoring Algorithm with Grover Search}
 
-  S. Whitlock, et al.\ present a method of SP factoring with Grover's
+  S. Whitlock et al.\ present a method of SP factoring with Grover's
   algorithm. The implementation in their paper is highly optimized,
   and modifies the target value in their circuit from some semiprime $N$,
   to $M$, a reduced number uniquely tied to $N$, which has unique factors 
   $p$ and $q$ which can be used to calculate $a, b$, the prime factors of 
-  $N$. This optimization from $N$ to $M$ allows the implementation to ignore
+  $N$~\cite{quantum_factoring}. 
+  
+  This optimization from $N$ to $M$ allows the implementation to ignore
   the trivial prime factors $2$ and $3$, and requires fewer qubits than would
-  otherwise be needed to search for prime factors of $N$~\cite{quantum_factoring}.
+  otherwise be needed to search for prime factors of $N$.
 
   While this approach is admirable, it introduces a level of complexity 
   that may hinder a learner's understanding of the mechanics at work,
@@ -158,14 +253,6 @@ for how Grover's algorithm may be used to invert a given function.
 
 \section{Methodology}\label{sec:Methodology}
 
-\begin{figure*}[!ht]\label{fig:FIGURA1}
-\centering
-% \includegraphics[width=7.9cm]{grover_inversion.png}
-\includegraphics[width=15.8cm]{grover_inversion.png}
-\caption{General circuit diagram for Grover's Algorithm, used to find 
-the inputs $x, y$ for which $f(x,y)=z$, for some known output $z$.}
-\end{figure*}
-
 Quantum algorithms take advantage of superposition and entanglement,
 which enables many methods of computation which are otherwise impossible
 with a classical computer. For example, by placing a set of $n$ qubits 
@@ -174,32 +261,44 @@ simultaneously represents every value which can be represented in $n$ bits,
 until measured. Once measured, a register in uniform superposition will 
 collapse into one of these states with equal likelihood.
 
-In a given register $R_n$ with $n$ qubits, values are represented in binary,
-such, for example, if some number $N=3$ were to be represented classically
-with $n=4$ bits, it might be seen in binary as $0011$, and on a qubit
-register that number may be represented similarly as $| 0011 \rangle$.
+% In a given register $R_n$ with $n$ qubits, values are represented in binary,
+% such, for example, if some number $N=3$ were to be represented classically
+% with $n=4$ bits, it might be seen in binary as $0011$, and on a qubit
+% register that number may be represented similarly as $| 0011 \rangle$.
+%
+  \subsection{The Use of Grover's Algorithm for General Function Inversion} 
 
-  \subsection{Grover's Algorithm for General Function Inversion} 
-
-  Operations can be performed on a set of input registers that start in uniform 
-  superposition, and these operations will affect each potential state individually. 
-  The properties of superposition are utilized by Grover's Oracle to selectively 
-  modify the states $|x,y\rangle$ in the input registers $R_x$ and $R_y$,
-  marking them as valid by setting them to $-|x,y\rangle$, only when the output register
-  $R_z$ matches some known search term $z$. An outline of a quantum circuit for
-  Grover's algorithm is seen in Figure~\ref{fig:FIGURA1}.
-
+  % Operations can be performed on a set of input registers that start in uniform 
+  % superposition, and these operations will affect each potential state individually. 
+  % The properties of superposition are utilized by Grover's Oracle to selectively 
+  % modify the states $|x,y\rangle$ in the input registers $R_x$ and $R_y$,
+  % marking them as valid by setting them to $-|x,y\rangle$, only when the output register
+  % $R_z$ matches some known search term $z$. An outline of a quantum circuit for
+  % Grover's algorithm is seen in Figure~\ref{fig:FIGURA1}.
+  %
   The oracle in Grover's algorithm performs a controlled operation which is meant
-  to differentiate states $x,y$ that do result in the wanted target $z$ from 
-  states $x,y$ that do not result in the target $z$.
+  to differentiate states $-|x,y\rangle$ that do result in the wanted target $z$ from 
+  states $|x,y\rangle$ that do not result in the target $|z\rangle$.
   
-  \begin{figure}[h]\label{fig:FIGURA2}
+  \begin{figure}[!ht]
   \centering
-  \includegraphics[width=6.0cm]{oracle_15.png}
+  % \includegraphics[width=6.0cm]{oracle_15.png}
+  \includegraphics[width=5.0cm]{oracle_15.png}
   % \includegraphics[width=7.9cm]{oracle_15.png}
-  \caption{Example circuit diagram for Grover's oracle marking states of the input
-  registers $R_x$ and $R_y$ ($[q_0,q_2]$ and $[q_3,q_5]$, respectively) which
-  result in $z=15$.}
+  \caption{Example circuit diagram for Grover's oracle marking entangled states 
+  of the output register ($R_z=[q_0,q_{11}]$) via the target qubit ($q_{12}$), where
+  $R_z=|15\rangle$.}\label{fig:FIGURA2}
+  \end{figure}
+
+  \begin{figure}[!h]
+  \centering
+  % \includegraphics[width=7.9cm]{diffuse.png}
+  % \includegraphics[width=5.0cm]{diffuse.png}
+  \includegraphics[width=4.2cm]{diffuse.png}
+  \caption{Example circuit diagram for a diffuser which amplifies the probability that
+  measurement will result in a state which has been marked by the oracle.
+  Input registers $R_x$ and $R_y$ ($[q_0,q_2]$ and $[q_3,q_5]$) are now 
+  more likely to be measured in a state such that $f(R_x,R_y)$ results in $R_z=|z\rangle$.}\label{fig:FIGURA3}
   \end{figure}
 
   Figure~\ref{fig:FIGURA2} shows an example of the oracle searching for the state $z=15$,
@@ -210,16 +309,6 @@ register that number may be represented similarly as $| 0011 \rangle$.
   will apply only for the desired states. These operations are then performed again,
   returning all but the target qubit (which has the Z-gate applied) to their original
   states.
-
-  \begin{figure}[h]\label{fig:FIGURA3}
-  \centering
-  % \includegraphics[width=7.9cm]{diffuse.png}
-  \includegraphics[width=5.0cm]{diffuse.png}
-  \caption{Example circuit diagram for a diffuser which amplifies the probability that
-  measurement will result in a state which has been marked by the oracle.
-  Input registers $R_x$ and $R_y$ (q0-q2 and q3-q5, respectively) after diffusion are 
-  more likely to be measured in a state such that $f(R_x,R_y)$ results in $R_z=|z\rangle$.}
-  \end{figure}
 
   The diffuser in Grover's algorithm (Figure~\ref{fig:FIGURA3}) can then increase the 
   probability of observing $-|x,y\rangle$ (states which have been marked by the oracle) 
@@ -233,69 +322,183 @@ register that number may be represented similarly as $| 0011 \rangle$.
   state $|x+y\rangle$.
   
   This approach was implemented in a similar manner to a classical full-adder,
-  and worked on quantum simulators with $100\%$ accuracy~\cite{quantum_full_adder}.
+  and has been observed to work in simulation with perfect accuracy~\cite{quantum_full_adder}.
 
-  The semiclassical full-adder indeed works with Grover's algorithm, states were
+  The semiclassical full-adder indeed works with Grover's algorithm. Input states were
   filtered to only measure inputs which resulted in a sum matching some given value.
   This is a trivial problem however, and only has potential usefulness due to the 
   relationship between multiplication and addition.
 
-  Semiclassical arithmetic does have significant drawbacks, however. Despite
-  being relatively simple to implement due to the similarity with principles
-  that have a much broader range of documentation, the classical nature of this
-  implementation meant that in order to move to multiplication from this point,
-  the value of one register would need to be measured, and $R_x$ would then be
-  added to $R_z$ a number of times dependent on the value of $y$.
+  Unfortunately, semiclassical multiplication requires direct measurement of $R_x$
+  or $R_y$, which would collapse the superposition, so a different approach was
+  needed.
 
-  Measuring the state of either input register would collapse the superposition,
-  and break the underlying principles on which Grover's algorithm depends. Thus,
-  a different approach became necessary- one that could bridge the gap between 
-  addition and multiplication without needing to measure either register,
-  so that the operation can still work with inputs that are in superposition,
-  allowing the use of Grover's algorithm.
+  % Semiclassical arithmetic does have significant drawbacks, however. Despite
+  % being relatively simple to implement due to the similarity with principles
+  % that have a much broader range of documentation, the classical nature of this
+  % implementation meant that in order to move to multiplication from this point,
+  % the value of one register would need to be measured, and $R_x$ would then be
+  % added to $R_z$ a number of times dependent on the value of $y$.
+  %
+  % Measuring the state of either input register would collapse the superposition,
+  % and break the underlying principles on which Grover's algorithm depends. Thus,
+  % a different approach became necessary- one that could bridge the gap between 
+  % addition and multiplication without needing to measure either register,
+  % so that the operation can still work with inputs that are in superposition,
+  % allowing the use of Grover's algorithm.
 
-  \subsection{Arithmetic in the Quantum Fourier Domain}  
+  \subsection{Arithmetic in the Quantum Fourier Domain}\label{sec:qft_arithmetic} 
 
-  Describe the updated methods of quantum arithmetic, and how it solved the 
-  previous problems.
+  The quantum fourier transform, QFT, is a very useful
+  operation, typically used to transform a qubit register from the
+  computational basis (binary) to the fourier basis (phase).  The QFT operation 
+  is defined in great detail by Perez et al.~\cite{quantum_arithmetic}. 
+  
+  To summarize, given a qubit register $R_x=|x\rangle$
+  with $n$ qubits in the computational basis, there are $d=2^n$ potential states $|k\rangle$
+  in $|x\rangle$ = $\{|0\rangle, |1\rangle, \ldots, |d-1\rangle\}$, the QFT operation in this
+  basis would be defined as:
 
-  Figures to visualize how the weighted phase shifts work to produce
-  expected results matching addition, scaled addition, and register 
-  multiplication.
+  \begin{equation}\label{eqn:QFT}
+    QFT|x\rangle = \frac{1}{\sqrt{d}} \sum_{k=0}^{d-1}e^{i{\frac{2\pi x k}{d}}}|k\rangle
+  \end{equation}
+
+  *It is worth noting that in some cases, a QFT on some $R_x$ may require a series of SWAP
+  operations $\{ SWP(q_0,q_{n-1}), SWP(q_1,q_{n-2}), \ldots, SWP(q_{\frac{n}{2}-1},q_{\frac{n}{2}})\}$
+  in order for future arithmetic to work as expected.
+
+  Once in the fourier basis, a specific number $x$ may be encoded by applying some
+  rotation $\omega_k$ to qubits $q_k \in R_x | q_k=R_x[k]$. The rotation $\omega_k$ applied
+  to each qubit $q_k$ can be defined as $\omega_k = \omega^{x k} = e^{i \frac{2\pi x k}{d}}$.
+
+  % The inverse QFT operation, IQFT, is simply the adjoint of QFT, and most 
+  % implementations allow you to automatically generate the adjoint of a given operation.
+  The inverse QFT operation, IQFT is used to return a qubit register $R_x$ from the fourier basis to the 
+  computational basis, retaining the values which have been mapped and operations
+  which have been applied to $R_x$.
+
+  Addition of two qubit registers $R_a$ in state $|a\rangle$ and $R_b$ in state 
+  $\phi(b)\rangle$ in the fourier basis 
+  ($\phi ADD(|a\rangle, |b\rangle)=|a + b\rangle$) may be performed by applying
+  controlled rotation gates $R_k$ which rotate qubits $b_j \in R_b$ by 
+  $\omega_j=e^\frac{2\pi i}{2^j}$ about the $z$-axis for each 
+  qubit $a_l | l \ge k, j=1+l-k$~\cite{quantum_arithmetic}. 
+
+  Multiplication in the quantum fourier domain can be done similarly. In terms of
+  a quantum circuit generation implementation, simply treat the previously defined
+  addition method as a function which adds the value of one register to another,
+  and add some constant multiple $C$ as a parameter, adjusting $\omega_j$ to 
+  $\omega_{j,C}=e^{C\cdot \frac{2\pi i}{2^j}}$. Now, to send the product of the two values in $R_x$
+  and $R_y$ to $R_z$, do as follows: Add $|R_y|$ controlled $\phi ADD(R, q_c, C)$ gates to each
+  $q_x$ in $R_x$, which will add the value of $|C\cdot x\rangle$ to $R_z$ where $C=2^u$ for
+  each $q_u \in R_y \iff q_y = |1\rangle$. This is, in essence, performing repeated scaled addition from $R_x$ onto
+  $R_z$, but the scaling factor is the powers of two corresponding to qubits in $R_y$, which
+  in tandem is cumulatively equivalent to adding $|x\cdot y\rangle$ to $R_z$~\cite{quantum_arithmetic}.
+
+  \subsection{Semiprime Factoring with Grover's Algorithm}
+
+  After implementing the QFT arithmetic methods and the oracle and diffuser for
+  grover's, it is trivial to implement a SP factoring circuit. Our implementation
+  follows the diagram in Figure~\ref{fig:FIGURA1}, while substituting $F(x,y)$ for
+  the $\phi MULT(R_x, R_y)$ operation described at the end of section 
+  \ \ref{sec:qft_arithmetic}.
+
+  The only fine-tuning necessary here was to add additional bits to the $R_z$ register.
+  Typically, only $\lceil \log_2(N)\rceil$ qubits are needed to represent some number $N$,
+  and while that is true, we experienced something that might be considered quantum integer
+  overflow before increasing the number of qubits in $R_z$. Prime factors $a,b$ of $N$ may be as
+  little as one bit smaller than $N$, and due to the fact that $R_x$ and $R_y$ representing $a,b$
+  are in superposition, that meant that all numbers up to $2^{n-1}$ were being included
+  in the superposition for both $a$ and $b$, resulting in products far larger than could
+  be represented in $R_z$, which in turn led to false positives due to products that were
+  some sum of powers of 2 greater than $n$.
+
+  The temporary solution we found was to simply decrease the size of $R_x$ and $R_y$ to 
+  $\lceil \log_2(\frac{N}{3})\rceil$, and set the size of $R_z$ to double that, to ensure no
+  further overflow could occur.
+
+  % \subsection{Quantum Circuit Simulation}
+
+  % It can be very expensive and time-consuming to run quantum circuits on real-world
+  % quantum computers, especially for problems which require a large number of qubits.
+  % Simulation is a strong solution to this issue; the math involved with qubits
+  % is known, so the state of a quantum circuit can be tracked properly throughout 
+  % execution.
+
+  % The methods described in this paper have been programmed using CUDA-Q in C++. This
+  % method of simulation allows for generalized circuit generation algorithms, and
+  % the ability to verify that a solution theoretically works at larger problem scales
+  % than would be possible to attempt on an actual quantum computer given the current 
+  % limitations of the quantum computing industry.
 
 \section{Results and Discussion}
 
-Include some charts showing our runtime and qubit requirements vs N.
+To date, we have preliminary results based on CUDA-Q simulation of quantum circuits, 
+which have been compared to classic parallel methods to generate primes with a sieve 
+and search them for modulo zero factoring. 
+
+This work is still in progress, but we have a working implementation of Grover's 
+algorithm with the CUDA-Q simulation which can estimate the time to factor any 
+semiprime up to the current scaling limits of the CUDA-Q simulation. 
+
+We first plan to compare the Grover quantum circuit to our best parallel sieve 
+and modulo search with this scale-out with SDSC Expanse.
 
   \subsection{Accuracy and Limitations}
 
-  How precise and accurate were our measurements. Mention edge-cases like
-  square semiprimes, etc.
+  On our CSU Chico A100 system, 
+  we have been able to scale this implementation up to a total of 32 qubits,
+  used to find the prime factors $47\times13=611$, where $611$ is a 10-bit semiprime. This
+  performance is due to the sub-optimality of the current implementation, as we have
+  not yet introduced the search-term reduction from $N$ to $M$ as is done by S. Whitlock 
+  et al.\cite{quantum_factoring}. 
 
-  How many qubits were we able to simulate, i.e., how large of semiprimes
-  can we factor with our current systems.
+  Due to the exploratory nature of this work, the initially sub-optimal nature of our 
+  implementation is intentional, because it allows for a more direct view of the inputs
+  and outputs in our circuit.
 
-  \subsection{Comparison to Shor's Algorithm}
+  For context, our current implementation uses $4 \lceil \log_2(\frac{N}{3})\rceil$ qubits
+  to find the prime factors of an $n$-bit semiprime, whereas the design by S. Whitlock 
+  et al.\cite{quantum_factoring} uses up to $2n-5$ qubits, which allowed them to simulate circuits which found
+  prime factors of up to $35$-bit semiprimes, using up to a total of $65$ qubits. 
+  The limiting factor for our simulations is VRAM, so it is expected that after implementing 
+  the optimizations from S. Whitlock et al.,\ our simulations should be able to scale up to 
+  $18$-bit semiprimes on the current equipment.
 
-  List strengths and weaknesses of Shor's, i.e., more documentation, more
-  examples, larger code base to reference, but ours is faster and uses less
-  qubits.
-
+  % In simulation, our implementation of quantum semiprime factoring with Grover's algorithm
+  % has $100\%$ accuracy on all observed simulation runs with 100 shots each. The expected
+  % accuracy is very near $100\%$, and simulating with a greater number of shots might allow us
+  % to see a handful of the expected erronious results, but the simulations are rather time 
+  % consuming (finding prime factors of 611 took over 20 minutes on the current machine), 
+  % and the current priority is verification of a working circuit, which has indeed been observed.
+  %
 \section{Conclusion}
+
+\balance
 
 What have we learned so far, what does it mean, at what problem scale might
 we see quantum advantage based on our results, etc.
 
 \section{Future Work}
  
-Implementation of the optimization with M, S, p, and q, rather than just 
-a and b from N.
+The current priority regarding the quantum circuit is to implement the optimizations
+mentioned by S. Whitlock et al.\ to substitute the search term $N$ with the smaller
+search term $M$, which should reduce the number of qubits needed from 
+$4 \lceil \log_2(\frac{N}{3})\rceil$ to $2n-5$.
+
+We have recently gained access to resources at the San Diego Supercomputing 
+Center (SDSC) Expanse cluster via an NSF allocation grant. This equipment will allow us to
+simulate on far larger problem scales, and by tracking the number of operations (quantum gates)
+used at different problem scales and comparing those counts against the number of operations
+performed in our classical parallel solution, we should be able to simulate circuits at a scale
+much larger than our current limitation of $\approx 32$ qubits.
 
 \section*{Acknowledgments}  
 % This section is not numbered.
 % 
-Acknowledge the source paper.
-
+Jacob Collins has been funded by Chico State Enterprises as an undergraduate research assistant
+through funding provided by the Department of Energy via a grant titled: \textit{QIST in the CSU:\ 
+Expanding Access to Quantum Information Science and Technology.}
 
 % LateX generates the ``References'' heading automatically and switches
 % to 9 point type for the bibliography.  Please  use BibTeX and
@@ -333,8 +536,6 @@ Jacob Collins\\
 1565 Filbert Ave\\
 jbcollins@csuchico.edu
 \end{correspondence}
-
-\balance
 
 \end{document}
 
