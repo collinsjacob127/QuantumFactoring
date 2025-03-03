@@ -178,9 +178,9 @@ the inputs $x, y$ for which $f(x,y)=z$, for some known output $z$.}
   1,121 qubit machine currently available in the United 
   States with IBM's Condor~\cite{abughanem2024ibmquantumcomputersevolution}.
 
-  The typical approach to semiprime factoring on a quantum computer is 
-  with Shor's algorithm, but there are many drawbacks to this approach,
-  and has not yet been observed to be practically advantageous.
+  % The typical approach to semiprime factoring on a quantum computer is 
+  % with Shor's algorithm, but there are many drawbacks to this approach,
+  % and has not yet been observed to be practically advantageous.
 
   If it can be verified that SP factoring with Grover's algorithm
   uses significantly less qubits than Shor's, has less error, or has less overhead,
@@ -275,7 +275,13 @@ collapse into one of these states with equal likelihood.
   % marking them as valid by setting them to $-|x,y\rangle$, only when the output register
   % $R_z$ matches some known search term $z$. An outline of a quantum circuit for
   % Grover's algorithm is seen in Figure~\ref{fig:FIGURA1}.
-  %
+  
+  This use of Grover's algorithm involves three main parts: some function with
+  one or multiple inputs, the oracle which filters for states in which the
+  desired output was observed, and the diffuser, which increases the probability 
+  of observing inputs from the correct state. An overview of this circuit is
+  shown in Figure~\ref{fig:FIGURA1}.
+
   The oracle in Grover's algorithm performs a controlled operation which is meant
   to differentiate states $-|x,y\rangle$ that do result in the wanted target $z$ from 
   states $|x,y\rangle$ that do not result in the target $|z\rangle$.
@@ -476,8 +482,13 @@ and modulo search with this scale-out with SDSC Expanse.
 
 \balance
 
-What have we learned so far, what does it mean, at what problem scale might
-we see quantum advantage based on our results, etc.
+Grover's algorithm has been demonstrated to be a highly versatile function,
+able to invert almost any function that can be implemented on a quantum 
+computer with inputs in superposition.
+
+Quantum methods of SP factoring have been developing at a quick pace,
+and it will most likely not be very long before practical examples
+of quantum advantage may be seen.
 
 \section{Future Work}
  
@@ -497,7 +508,7 @@ much larger than our current limitation of $\approx 32$ qubits.
 % This section is not numbered.
 % 
 Jacob Collins has been funded by Chico State Enterprises as an undergraduate research assistant
-through funding provided by the Department of Energy via a grant titled: \textit{QIST in the CSU:\ 
+through funding provided by the Department of Energy via a grant titled: \emph{QIST in the CSU:\ 
 Expanding Access to Quantum Information Science and Technology.}
 
 % LateX generates the ``References'' heading automatically and switches
