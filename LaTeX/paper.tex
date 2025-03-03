@@ -109,10 +109,10 @@ the inputs $x, y$ for which $f(x,y)=z$, for some known output $z$.}
   The objective of this research is to clearly demonstrate quantum advantage 
   by showing clear speed-up to solve the same problem at the same scale.
 
-  Some of the major limitations for applied quantum computing are 
-  the number of qubits required to perform a given task, the likelihood of errors
-  in measurement, and the overhead associated with running circuits on real-world
-  quantum computers. 
+  % Some of the major limitations for applied quantum computing are 
+  % the number of qubits required to perform a given task, the likelihood of errors
+  % in measurement, and the overhead associated with running circuits on real-world
+  % quantum computers. 
   
   % Today many functions are reversible with digital computing (while not adiabatic), 
   % but not all. For example, a discrete cosine transformation or Fourier transform 
@@ -128,15 +128,14 @@ the inputs $x, y$ for which $f(x,y)=z$, for some known output $z$.}
   the goal of this research is to concretely show that this particular problem is 
   in fact a clear case of quantum advantage.
 
+  One of the major intentions for this paper is demonstration of the broad utility of Grover's 
+  algorithm.%, and to provide a general reference
+  %for how Grover's algorithm may be used to invert a given function.
+
   Furthermore, the longer-term goal is to identify the types of algorithms that 
   likewise may have significant quantum advantage based upon reversible functions.
-
-  Grover's algorithm can be used to provide a very efficient search, 
-  which is in essence a content addressable memory that works at a scale limited only by qubit scaling.
-
-  One of the major intentions for this paper is demonstration of the broad utility of Grover's 
-  algorithm, and to provide a general reference
-  for how Grover's algorithm may be used to invert a given function.
+  % Grover's algorithm can be used to provide a very efficient search, 
+  % which is in essence a content addressable memory that works at a scale limited only by qubit scaling.
 
   \subsection{Motivation}
 
@@ -158,21 +157,26 @@ the inputs $x, y$ for which $f(x,y)=z$, for some known output $z$.}
   Data privacy hinges on this one-way function, called a trap-door, where factoring 
   is beyond P complexity, but trivial if one possesses the required key. 
 
-  If a quantum computer makes SP factoring as simple as SP computation, given a 
-  reversible quantum circuit, then this means all encryption can potentially 
-  be broken by such a quantum circuit. 
-
+  % If a quantum computer makes SP factoring as simple as SP computation, given a 
+  % reversible quantum circuit, then this means all encryption can potentially 
+  % be broken by such a quantum circuit. 
+  
   The only safety now for encryption is scaling the key size (semiprime) to keep 
   it larger than the largest quantum computer number of qubits.
 
-  For example, the RSA number 250, which is 892-bits long, was only recently factored using a parallel computer. 
+  For example, the RSA number 250, which is 892-bits long, was only recently 
+  factored using a parallel computer with the best known SP factoring 
+  method known right now~\cite{Bai2016}.
+
   The idea of factoring 4096 or bigger is nearly impossible even with the largest parallel computers available~\cite{FergusonSchneier2003}. 
 
   However, a quantum computer has a much lower time complexity if the number of qubits
   can be scaled to implement a quantum circuit that can factor a semiprime. Ongoing research
   at China State Key Laboratories suggests that they have been making significant
   progress in breaking RSA encryption, considering their 48-bit demo using 10 qubits
-  in 2022~\cite{yan2022factoringintegerssublinearresources}. Furthermore, they claim
+  in 2022~\cite{yan2022factoringintegerssublinearresources}. 
+  
+  Furthermore, they claim
   that with the techniques they have been using, it would be possible to break
   RSA 2048 with a quantum circuit which needs only 372 qubits, far less than the
   1,121 qubit machine currently available in the United 
