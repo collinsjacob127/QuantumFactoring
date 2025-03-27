@@ -2,10 +2,6 @@
  * Description: 
  *      Using grover's algorithm to invert QFT multiplication
  *      to achieve quantum SP factoring.
- * Note:
- *      Must be updated with methods from [this paper](https://arxiv.org/pdf/2312.10054)
- *      to reduce error and increase qubit efficiency.
- *      ^ IP in `factor.cpp`
  * Author: Jacob Collins
  **********************************/
 
@@ -165,8 +161,6 @@ __qpu__ void setInt(const long val, cudaq::qview<> qs, bool qorder=true) {
   }
 }
 
-// Converted from qml function
-// https://docs.pennylane.ai/en/stable/_modules/pennylane/templates/subroutines/qft.html#QFT
 __qpu__ void quantumFourierTransform(cudaq::qview<> qs) {
   const int nbits = qs.size();
   int shift_len = nbits-1;
@@ -245,10 +239,8 @@ __qpu__ void oracle(cudaq::qview<> ctrl, cudaq::qview<> tgt, const long target_s
   }
 }
 
-// Based on pennylane.ai implementation
 __qpu__ void QFTMult(cudaq::qview<> x_reg, cudaq::qview<> y_reg, cudaq::qview<> z_reg) {
   const int nbits_x = x_reg.size();
-  // const int nbits_z = z_reg.size();
   int c;
 
   quantumFourierTransform(z_reg);
