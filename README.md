@@ -1,6 +1,6 @@
 # Repo Summary
 
-This repo is for CSU Chico students researching various quantum computing algorithms.
+Quantum computing research at CSU, Chico.
 
 Code is written using [CUDA-Q C++](https://nvidia.github.io/cuda-quantum/latest/index.html).
 
@@ -54,6 +54,7 @@ nvcc --version
 sudo -E bash install_cuda_quantum*.$(uname -m) --accept
 . /etc/profile
 ```
+\*note: This code was developed using CUDA-Q version 0.8.0, and will require additional flags in the Makefile to compile in the most recent version.
 
 ## Setup
 
