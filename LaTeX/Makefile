@@ -1,32 +1,15 @@
 # file: Makefile	George B. Moody (george@mit.edu)
 
-PRODUCTS=template.pdf paper.pdf
+PRODUCTS= paper.pdf
 
 all: $(PRODUCTS)
-
-template.pdf:	template.tex
-	pdflatex template
-	bibtex template
-	pdflatex template
-	pdflatex template
-	rm -f template.aux template.bbl template.blg template.dvi template.log
-	rm -f template.ps *~
-
-template.ps:	template.dvi
-	dvips -Ppdf -t letter -o template.ps template
-
-template.dvi:	template.tex
-	latex template	# creates template.aux, needed by bibtex
-	bibtex template	# creates template.bbl, needed by latex
-	latex template	# merges references
-	latex template  # produces final copy with correct citation numbers
 
 paper.pdf:	paper.tex
 	pdflatex paper
 	bibtex paper
 	pdflatex paper
 	pdflatex paper
-	rm -f paper.aux paper.bbl paper.blg paper.dvi paper.log
+	rm -f paper.aux paper.blg paper.dvi paper.log
 	rm -f paper.ps *~
 
 paper.ps:	paper.dvi

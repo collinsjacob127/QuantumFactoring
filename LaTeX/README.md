@@ -2,6 +2,8 @@
 
 `make` builds [paper.pdf](paper.pdf) and [template.pdf](template.pdf). References are in [refs.bib](refs.bib).
 
+This directory uses the CSCSU conference template for LaTeX, modified by Jacob Collins 3/26/2025.
+
 Writing a CinC Paper Using LaTeX
 
 George Moody (george@mit.edu)
