@@ -21,7 +21,7 @@ described when the program is run without arguments. Code in [in-progress](in-pr
 - [x] QFT Inverse Addition (Out of place)
 - [x] QFT Scaled Addition (Out of place)
 - [x] QFT Multiplication (Out of place)
-- [x] **QFT Inverse Multiplication** (Out of place) - High error, requires methods from the paper.
+- [x] **QFT Inverse Multiplication** (Out of place)
 - [ ] QFT Addition (In-place)
 - [ ] QFT Inverse Addition (In-place)
 - [ ] QFT Scaled Addition (In-place)
