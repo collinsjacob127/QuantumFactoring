@@ -30,7 +30,7 @@ described when the program is run without arguments. Code in [in-progress](in-pr
 
 ## CudaQ Environment
 
-### Option 1: cscigpu (Recommended)
+### Option 1: cscigpu (Recommended, but only accessible to CSU, Chico Students)
 
 The cscigpu server `<user>@cscigpu.csuchico.edu` already has CudaQ for C++ and Python installed.
 
