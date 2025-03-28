@@ -2,7 +2,13 @@
  * Description: 
  *      Using grover's algorithm to invert QFT multiplication
  *      to achieve quantum SP factoring.
+ *
  * Author: Jacob Collins
+ *
+ * Note: 
+ *    CURRENTLY FUNCTIONAL
+ *    Uses ~4n qubits instead of the optimal ~2n.
+ *    WIP optimized factorization in factor.cpp
  **********************************/
 
 #include <cudaq.h>

@@ -413,7 +413,7 @@ void run_SP_factor(long N) {
   auto end = std::chrono::high_resolution_clock::now();
   auto duration =
       std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
-  printf("\nAdder finished in %s.\n", format_time(duration).c_str());
+  printf("\nCircuit finished in %s.\n", format_time(duration).c_str());
   std::vector<std::tuple<std::string, size_t>> results = sort_map(counts.to_map());
   printf("\nMEASURED RESULTS\n");
   display_full_results(results, N, nbits_x, nbits_y, nbits_z, NUM_RESULTS_DISPLAYED);
@@ -424,6 +424,7 @@ void run_SP_factor(long N) {
 int main(int argc, char *argv[]) {
   // PARSE INPUT VALUES
   // Default search value
+  printf("This file is WIP, use simple_factor.cpp for testing.\n");
   printf("Usage: ./factor.x [N = Semiprime]\n");
   long N = 15;
   if (argc >= 2) {
