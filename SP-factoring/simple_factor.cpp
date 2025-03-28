@@ -395,6 +395,8 @@ int main(int argc, char *argv[]) {
   printf("Finding prime factors of %ld\n", z);
 
   if (z < 9 || z % 2 == 0) { printf("Invalid input for z\n"); }
-
+  if (sqrt(z) == (int) sqrt(z)) { 
+    printf("Invalid SP: square semiprime is trivial.\n");
+  }
   run_SP_factor(z);
 }
