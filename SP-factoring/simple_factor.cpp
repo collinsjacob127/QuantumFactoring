@@ -29,8 +29,8 @@
 #define ENABLE_MISC_DEBUG false
 #define ENABLE_STATEVECTOR false
 
-//#define NUMBER_OF_SHOTS 100
-#define NUMBER_OF_SHOTS 1
+#define NUMBER_OF_SHOTS 100
+// #define NUMBER_OF_SHOTS 1
 #define NUM_RESULTS_DISPLAYED 5
 
 /**************************************************
