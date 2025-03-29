@@ -1,0 +1,44 @@
+Usage: ./simple_factor.x [N]
+Finding prime factors of 303
+Usage: ./simple_factor.x [N]
+Finding prime factors of 303
+
+VERIFIED INPUTS
+N: 303 (00000100101111)
+Circuit requires 29 qubits.
+
+VERIFIED INPUTS
+N: 303 (00000100101111)
+Circuit requires 29 qubits.
+
+SP Factoring finished in 91.9387s.
+
+MEASURED RESULTS
+101 * 3 = 303 (53/100 = 53.00%) ✓ 
+  Full result: 1100101_0000011_00000100101111
+  (R1) x: 101 (1100101)
+  (R2) y: 3 (0000011)
+  (R3) N: 303 (00000100101111)
+3 * 101 = 303 (47/100 = 47.00%) ✓ 
+  Full result: 0000011_1100101_00000100101111
+  (R1) x: 3 (0000011)
+  (R2) y: 101 (1100101)
+  (R3) N: 303 (00000100101111)
+100 / 100 Shots Correct. (100.00%)
+
+
+SP Factoring finished in 91.9268s.
+
+MEASURED RESULTS
+101 * 3 = 303 (53/100 = 53.00%) ✓ 
+  Full result: 1100101_0000011_00000100101111
+  (R1) x: 101 (1100101)
+  (R2) y: 3 (0000011)
+  (R3) N: 303 (00000100101111)
+3 * 101 = 303 (47/100 = 47.00%) ✓ 
+  Full result: 0000011_1100101_00000100101111
+  (R1) x: 3 (0000011)
+  (R2) y: 101 (1100101)
+  (R3) N: 303 (00000100101111)
+100 / 100 Shots Correct. (100.00%)
+
