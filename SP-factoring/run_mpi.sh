@@ -9,15 +9,23 @@ if ! command -v nvidia-smi &> /dev/null; then
 fi
 # Use nvidia-smi to list GPUs and count the number of lines in the output
 gpu_count=$(nvidia-smi --query-gpu=name --format=csv,noheader | wc -l)
+echo "Running with $gpu_count GPU(s)."
 ##########################
-
 
 if [ "$#" -eq 0 ]; then
   argument=77
+  echo "Warning: No argument given!"
 else
-  argument=$0
+  argument="$1"
 fi
 
-
+echo "Compiling circuit..."
 nvq++ simple_factor.cpp --target nvidia --target-option mgpu
-mpiexec -np $gpu_count ./a.out $argument
+
+echo "Finding prime factors of $argument."
+
+OUTPUT_FILE="output/test_$1.txt"
+
+mpiexec -np $gpu_count ./a.out "$argument" > "$OUTPUT_FILE" &
+
+echo "Job Completed."

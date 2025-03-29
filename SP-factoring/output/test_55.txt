@@ -1,0 +1,22 @@
+Usage: ./simple_factor.x [N]
+Finding prime factors of 55
+
+VERIFIED INPUTS
+N: 55 (0000110111)
+Circuit requires 21 qubits.
+
+SP Factoring finished in 2.03928s.
+
+MEASURED RESULTS
+5 * 11 = 55 (53/100 = 53.00%) ✓ 
+  Full result: 00101_01011_0000110111
+  (R1) x: 5 (00101)
+  (R2) y: 11 (01011)
+  (R3) N: 55 (0000110111)
+11 * 5 = 55 (47/100 = 47.00%) ✓ 
+  Full result: 01011_00101_0000110111
+  (R1) x: 11 (01011)
+  (R2) y: 5 (00101)
+  (R3) N: 55 (0000110111)
+100 / 100 Shots Correct. (100.00%)
+
