@@ -372,6 +372,7 @@ void run_SP_factor(long z) {
   auto start = std::chrono::high_resolution_clock::now();
 
   int n_shots = NUMBER_OF_SHOTS; // Get a lot of samples
+  cudaq::set_target("nvidia", "mqpu");
   auto counts = cudaq::sample(n_shots, runFactorization{}, z, nbits_x, nbits_y, nbits_z);
 
   auto end = std::chrono::high_resolution_clock::now();
@@ -388,6 +389,8 @@ void run_SP_factor(long z) {
 int main(int argc, char *argv[]) {
   // PARSE INPUT VALUES
   // Default search value
+  cudaq::mpi::initialize(argc, argv);
+  
   printf("Usage: ./simple_factor.x [N]\n");
   long z = 15;
   if (argc >= 2) {
@@ -401,4 +404,5 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
   run_SP_factor(z);
+  cudaq::mpi::finalize();
 }
