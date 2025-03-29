@@ -358,6 +358,7 @@ void run_SP_factor(long z) {
 
   printf("\nVERIFIED INPUTS\n");
   printf("N: %ld (%s)\n", z, bin_str(z, nbits_z).c_str());
+  printf("Circuit requires %d qubits.\n", nbits_y + nbits_x + nbits_z + 1);
 
   // Draw circuit and view statevector
   if (ENABLE_CIRCUIT_FIG)
@@ -387,7 +388,7 @@ void run_SP_factor(long z) {
 int main(int argc, char *argv[]) {
   // PARSE INPUT VALUES
   // Default search value
-  printf("Usage: ./simple_factor.x [N = Semiprime]\n");
+  printf("Usage: ./simple_factor.x [N]\n");
   long z = 15;
   if (argc >= 2) {
     z = strtol(argv[1], nullptr, 10);
