@@ -1,0 +1,12 @@
+Usage: ./simple_factor.x [N]
+Finding prime factors of 737
+Usage: ./simple_factor.x [N]
+Finding prime factors of 737
+
+VERIFIED INPUTS
+N: 737 (0000001011100001)
+Circuit requires 33 qubits.
+
+VERIFIED INPUTS
+N: 737 (0000001011100001)
+Circuit requires 33 qubits.
