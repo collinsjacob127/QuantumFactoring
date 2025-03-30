@@ -314,8 +314,8 @@ collapse into one of these states with equal likelihood.
 
   Figure~\ref{fig:FIGURA2} shows an example of the oracle searching for the state $z=15$,
   or rather, $R_z=|001111\rangle$. To implement a circuit which can selectively target
-  $z=15$, Toffoli gates (otherwise known as NOT, or X gates) are applied on 
-  $R_z[0]$ and $R_z[1]$, so that states where $R_z=|001111\rangle$ will temporarily be in
+  $z=15$, Toffoli gates (controlled-NOT) are applied on $R_z[0]$ and $R_z[1]$, 
+  so that states where $R_z=|001111\rangle$ will temporarily be in
   state $R_z=|111111\rangle$, and the multi-controlled Toffoli gates\cite{multi_toffoli}
   will apply only for the desired states. These operations are then performed again,
   returning all but the target qubit (which has the Z-gate applied) to their original
