@@ -1,0 +1,22 @@
+Usage: ./simple_factor.x [N]
+Finding prime factors of 143
+
+VERIFIED INPUTS
+N: 143 (000010001111)
+Circuit requires 25 qubits.
+
+SP Factoring finished in 4.06513s.
+
+MEASURED RESULTS
+13 * 11 = 143 (53/100 = 53.00%) ✓ 
+  Full result: 001101_001011_000010001111
+  (R1) x: 13 (001101)
+  (R2) y: 11 (001011)
+  (R3) N: 143 (000010001111)
+11 * 13 = 143 (47/100 = 47.00%) ✓ 
+  Full result: 001011_001101_000010001111
+  (R1) x: 11 (001011)
+  (R2) y: 13 (001101)
+  (R3) N: 143 (000010001111)
+100 / 100 Shots Correct. (100.00%)
+

@@ -402,7 +402,7 @@ int main(int argc, char *argv[]) {
     printf("Invalid SP: square semiprime is trivial.\n");
     exit(EXIT_FAILURE);
   }
-  cudaq::mpi::initialize(argc, argv);
+//  cudaq::mpi::initialize(argc, argv);
   run_SP_factor(z);
-  cudaq::mpi::finalize();
+//  cudaq::mpi::finalize();
 }
