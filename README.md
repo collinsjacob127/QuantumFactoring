@@ -30,6 +30,8 @@ described when the program is run without arguments. Code in [in-progress](in-pr
 
 ## CudaQ Environment
 
+This project is compiled with nvq++ version 0.8.0 and CUDA version 12.2.
+
 ### Option 1: cscigpu (Recommended, but only accessible to CSU, Chico Students)
 
 The cscigpu server `<user>@cscigpu.csuchico.edu` already has CudaQ for C++ and Python installed.
