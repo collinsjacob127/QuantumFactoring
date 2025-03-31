@@ -277,8 +277,8 @@ struct runFactorization {
     cudaq::qvector tgt(1);
     // h(x_reg);
     // h(y_reg);
-    // oracle(z_reg, tgt.front(1), semiprime);
-    reflect_uniform(q_reg.front(nbits_x+nbits_y), tgt.front(1));
+    oracle(z_reg, tgt.front(1), semiprime);
+//    reflect_uniform(q_reg.front(nbits_x+nbits_y), tgt.front(1));
 
     // Wikipedia: ( pi / 4 ) * sqrt( N / k )
     // N: Size of search space (2^n choose 2)
