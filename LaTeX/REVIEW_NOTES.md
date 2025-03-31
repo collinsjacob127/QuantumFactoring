@@ -17,3 +17,4 @@
 - [ ] 3.1: "Three main parts" There are technically five in the diagram, and should be explained.
 - [ ] Explain toffoli gates in-depth.
 
+- [ ] Describe where count of necessary # qubits comes from.
