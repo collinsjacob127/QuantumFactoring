@@ -25,7 +25,7 @@
 #include <vector>
 
 #define ENABLE_DEBUG true // Displays full bitwise output
-#define ENABLE_CIRCUIT_FIG false
+#define ENABLE_CIRCUIT_FIG true
 #define ENABLE_MISC_DEBUG false
 #define ENABLE_STATEVECTOR false
 

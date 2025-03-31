@@ -316,9 +316,9 @@ collapse into one of these states with equal likelihood.
   $z=15$, Toffoli gates (controlled-NOT) are applied on $R_z[0]$ and $R_z[1]$, 
   so that states where $R_z=|001111\rangle$ will temporarily be in
   state $R_z=|111111\rangle$, and the multi-controlled Toffoli gates\cite{multi_toffoli}
-  will apply only for the desired states. These operations are then performed again,
-  returning all but the target qubit (which has the Z-gate applied) to their original
-  states.
+  will apply a NOT operation to the target qubit only for the desired states (where $z=15$). 
+  These operations are then performed again, returning all but the target qubit 
+  (which has the Z-gate applied) to their original states.
 
   The diffuser in Grover's algorithm (Figure~\ref{fig:FIGURA3}) can then increase the 
   probability of observing $-|x,y\rangle$ (states which have been marked by the oracle) 
