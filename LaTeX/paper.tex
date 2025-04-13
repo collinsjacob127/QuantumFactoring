@@ -106,7 +106,7 @@ the inputs $x, y$ for which $f(x,y)=z$, for some known output $z$.}
 
   \subsection{Goals}
 
-  The objective of this research is to clearly demonstrate quantum advantage 
+  The greater objective of this research is to clearly demonstrate quantum advantage 
   by showing clear speed-up to solve the same problem at the same scale.
 
   % Some of the major limitations for applied quantum computing are 
@@ -128,11 +128,10 @@ the inputs $x, y$ for which $f(x,y)=z$, for some known output $z$.}
   the goal of this research is to concretely show that this particular problem is 
   in fact a clear case of quantum advantage.
 
-  One of the major intentions for this paper is demonstration of the broad utility of Grover's 
-  algorithm.%, and to provide a general reference
+  One major intention for this paper in particular is demonstration of the broad 
+  utility of Grover's algorithm. %, and to provide a general reference
   %for how Grover's algorithm may be used to invert a given function.
-
-  Furthermore, the longer-term goal is to identify the types of algorithms that 
+  Furthermore, another long-term goal of this research is to identify the types of algorithms that 
   likewise may have significant quantum advantage based upon reversible functions.
   % Grover's algorithm can be used to provide a very efficient search, 
   % which is in essence a content addressable memory that works at a scale limited only by qubit scaling.
@@ -147,28 +146,28 @@ the inputs $x, y$ for which $f(x,y)=z$, for some known output $z$.}
   prime number generation with a sieve (filters out all non-primes) and trial division search.
   This problem in particular becomes complex for large size semiprimes commonly used in 
   encryption, which might be 4096 bits or more. 
-  Even a 128-bit semiprime, which is the product of two 64-bit primes requires time complexity
-  that is beyond polynomial, and therefore requires a parallel computer to solve today. 
+  % Even a 128-bit semiprime, which is the product of two 64-bit primes requires time complexity
+  % that is beyond polynomial, and therefore requires a parallel computer to solve today. 
 
-  This is important since the simplicity of multiplying two large primes enables fast encryption of data, 
-  but the complexity of factoring semiprimes ensures privacy so that data can only be accessed by someone possessing a private key 
-  (one of the primes that compose the semiprime used for encryption).
+  % This is important since the simplicity of multiplying two large primes enables fast encryption of data, 
+  % but the complexity of factoring semiprimes ensures privacy so that data can only be accessed by someone possessing a private key 
+  % (one of the primes that compose the semiprime used for encryption).
 
-  Data privacy hinges on this one-way function, called a trap-door, where factoring 
-  is beyond P complexity, but trivial if one possesses the required key. 
+  % Data privacy hinges on this one-way function, called a trap-door, where factoring 
+  % is beyond P complexity, but trivial if one possesses the required key. 
 
   % If a quantum computer makes SP factoring as simple as SP computation, given a 
   % reversible quantum circuit, then this means all encryption can potentially 
   % be broken by such a quantum circuit. 
   
-  The only safety now for encryption is scaling the key size (semiprime) to keep 
-  it larger than the largest quantum computer number of qubits.
+  % The only safety now for encryption is scaling the key size (semiprime) to keep 
+  % it larger than the largest quantum computer number of qubits.
 
   For example, the RSA number 250, which is 892-bits long, was only recently 
   factored using a parallel computer with the best known SP factoring 
   method known right now~\cite{Bai2016}.
 
-  The idea of factoring 4096 or bigger is nearly impossible even with the largest parallel computers available~\cite{FergusonSchneier2003}. 
+  % The idea of factoring 4096 or bigger is nearly impossible even with the largest parallel computers available~\cite{FergusonSchneier2003}. 
 
   However, a quantum computer has a much lower time complexity if the number of qubits
   can be scaled to implement a quantum circuit that can factor a semiprime. Ongoing research
@@ -186,10 +185,20 @@ the inputs $x, y$ for which $f(x,y)=z$, for some known output $z$.}
   % with Shor's algorithm, but there are many drawbacks to this approach,
   % and has not yet been observed to be practically advantageous.
 
+  The two most significant limitations to applied quantum computing are 
+  qubit count and error rate. The algorithm displayed in this paper (and also by
+  S. Whitlock, et al.~\cite{quantum_factoring}) demonstrates
+  significant optimizations regarding the number of qubits required for semiprime
+  factoring. It is important to note, however, that error rate increases dramatically
+  in proportion to the number of gates applied, which may reduce the viability of
+  these algorithms in practice. That being said, there are emerging quantum computing 
+  hardware solutions which claim to have far better error-control methods than have yet
+  been observed, such as the Majorana I~\cite{Aghaee2025}.
+
   If it can be verified that SP factoring with Grover's algorithm
   uses significantly less qubits than Shor's, has less error, or has less overhead,
   then the application of quantum semiprime factoring at a meaningful scale 
-  will be feasible far sooner.
+  may be feasible far sooner.
 
 \section{Literature Review}
 
@@ -201,14 +210,15 @@ the inputs $x, y$ for which $f(x,y)=z$, for some known output $z$.}
 
   The exact number of iterations required varies on a case-by-case basis,
   but is typically expressed as follows: in a search for one matching input
-  state, $\frac{\pi}{4}\sqrt{N}$ iterations are required, and in a search
-  for $k$ valid input states, $\sqrt{\pi}{4}\cdot \sqrt{\frac{N}{k}}$
-  iterations are required, where $N$ is the size of the search domain.
+  state, $\frac{\pi }{4}\sqrt{N}$ iterations are required, and in a search
+  for $2$ valid input states, $\lfloor \frac{\pi }{4} \cdot 2^\frac{n_x + n_y}{2}\rfloor$
+  iterations are required, where $N$ is the size of the search domain, and $n_x, n_y$ are
+  the number of qubits needed to represent the prime factors $x$ and $y$, respectively~\cite{quantum_factoring}.
 
-  In most cases, $N=2^n$, where $n$ is the number of bits needed to represent
-  the target value. This is by no means a steadfast rule, and is meant as 
-  a helpful starting point for any confused readers attempting to implement
-  something similar themselves.
+  % In most cases, $N=2^n$, where $n$ is the number of bits needed to represent
+  % the target value. This is by no means a steadfast rule, and is meant as 
+  % a helpful starting point for any confused readers attempting to implement
+  % something similar themselves.
   
   Given a function $f(x)=y$, where $x$ is unknown (index, prime factors, 
   sum components, etc.), and $y$ is known (array value, semiprime/product, 
@@ -224,17 +234,9 @@ the inputs $x, y$ for which $f(x,y)=z$, for some known output $z$.}
   \subsection{Shor's Algorithm}
 
   Shor's algorithm is the most well-known approach to prime factorization
-  in quantum computing. However, there are many drawbacks to this approach,
-  the most notable of which being the need to take measurements mid-circuit
-  and essentially re-run with new values afterwards, which introduces a 
-  significant amount of overhead. Even recently improved versions of Shor's
-  algorithm still require a minimum of $2n+1$ qubits, and tend to be 
-  extremely sensitive to noise, which leads to high error\cite{quantum_factoring,shor}.
-
-  Furthermore, when it comes to more concrete applications of Shor's algorithm,
-  a full-scale implementation of this algorithm to factor an $n$-bit number
-  may require up to $5n+1$ qubits for accurate results, and require 
-  on the order of $n^3$ operations~\cite{quantum_fac_efficient}.
+  in quantum computing. While it is the fastest known quantum algorithm for 
+  factoring semiprimes, it requires (in most cases) $5n+1$ qubits~\cite{quantum_fac_efficient},
+  which is too large for problems of a practical size~\cite{quantum_factoring,shor}.
 
   \subsection{Quantum Factoring Algorithm with Grover Search}
 
@@ -245,15 +247,16 @@ the inputs $x, y$ for which $f(x,y)=z$, for some known output $z$.}
   $p$ and $q$ which can be used to calculate $a, b$, the prime factors of 
   $N$~\cite{quantum_factoring}. 
   
-  This optimization from $N$ to $M$ allows the implementation to ignore
-  the trivial prime factors $2$ and $3$, and requires fewer qubits than would
-  otherwise be needed to search for prime factors of $N$.
+  % This optimization from $N$ to $M$ allows the implementation to ignore
+  % the trivial prime factors $2$ and $3$, and requires fewer qubits than would
+  % otherwise be needed to search for prime factors of $N$.
 
   While this approach is admirable, it introduces a level of complexity 
   that may hinder a learner's understanding of the mechanics at work,
   so the implementation shown in section\ \ref{sec:Methodology} forgoes
   this abstraction from $N$ to $M$, and instead implements an oracle which
-  searches directly for prime factors $a$ and $b$ of a semiprime $N$.
+  searches directly for prime factors $a$ and $b$ of a semiprime $N$, without
+  the additional pre-processing and post-processing steps.
 
 \section{Methodology}\label{sec:Methodology}
 
@@ -281,14 +284,16 @@ collapse into one of these states with equal likelihood.
   % Grover's algorithm is seen in Figure~\ref{fig:FIGURA1}.
   
   This use of Grover's algorithm involves three main parts: some function with
-  one or multiple inputs, the oracle which filters for states in which the
+  one or multiple inputs ($F(x,y)$ and $F^{\dagger}(x,y)$), the oracle which filters for states in which the
   desired output was observed, and the diffuser, which increases the probability 
-  of observing inputs from the correct state. An overview of this circuit is
-  shown in Figure~\ref{fig:FIGURA1}.
+  of observing inputs which match the previously marked state. An overview of this circuit is
+  shown in Figure~\ref{fig:FIGURA1}. The $H$ operations on $R_x$ and $R_y$ are
+  simply Hadamard operations, placing both registers in a uniform superposition.
 
   The oracle in Grover's algorithm performs a controlled operation which is meant
   to differentiate states $-|x,y\rangle$ that do result in the wanted target $z$ from 
-  states $|x,y\rangle$ that do not result in the target $|z\rangle$.
+  states $|x,y\rangle$ that do not result in the target $|z\rangle$ by conditionally 
+  flipping the phase of the target qubit.
   
   \begin{figure}[!ht]
   \centering
@@ -296,8 +301,8 @@ collapse into one of these states with equal likelihood.
   \includegraphics[width=5.0cm]{oracle_15.png}
   % \includegraphics[width=7.9cm]{oracle_15.png}
   \caption{Example circuit diagram for Grover's oracle marking entangled states 
-  of the output register ($R_z=[q_0,q_{11}]$) via the target qubit ($q_{12}$), where
-  $R_z=|15\rangle$.}\label{fig:FIGURA2}
+  of the output register ($R_z=[q_6,q_{11}]$) via the target qubit ($q_{12}$), where
+  $R_z=|15\rangle = |001111\rangle$.}\label{fig:FIGURA2}
   \end{figure}
 
   \begin{figure}[!h]
@@ -313,35 +318,44 @@ collapse into one of these states with equal likelihood.
 
   Figure~\ref{fig:FIGURA2} shows an example of the oracle searching for the state $z=15$,
   or rather, $R_z=|001111\rangle$. To implement a circuit which can selectively target
-  $z=15$, Toffoli gates (controlled-NOT) are applied on $R_z[0]$ and $R_z[1]$, 
-  so that states where $R_z=|001111\rangle$ will temporarily be in
-  state $R_z=|111111\rangle$, and the multi-controlled Toffoli gates\cite{multi_toffoli}
-  will apply a NOT operation to the target qubit only for the desired states (where $z=15$). 
-  These operations are then performed again, returning all but the target qubit 
-  (which has the Z-gate applied) to their original states.
+  $z=15$, NOT gates are applied on $R_z[0]$ and $R_z[1]$ (seen in the figure as $q_6,q_7$), 
+  so that states where $R_z=|001111\rangle$ will then be in the
+  state $R_z=|111111\rangle$, and the multi-qubit Toffoli gates\cite{multi_toffoli}
+  will apply a NOT operation to the target qubit only for the desired states where $z=15$. 
+  % $q_6$ and $q_7$ are chosen in particular because they are the $|0\rangle$ qubits in
+  % the bitwise representation of $15$, and for the multi-qubit Toffoli to select this state,
+  % all control qubits must be in state $|1\rangle$. 
+  The NOT gates are again applied to $R_z$, returning it to state $|001111\rangle$,
+  while the target qubit retains the phase flip in those corresponding states.
+
+  To clarify, Toffoli gates have a target qubit (Seen as $q_{12}$ in Figure~\ref{fig:FIGURA2}, and `Tgt' in Figure~\ref{fig:FIGURA1}) 
+  and two control qubits which must both be in state $|1\rangle$ for a NOT operation to be applied
+  to the target qubit. There are methods of combining multiple Toffoli gates to behave
+  as a multi-qubit Toffoli gate, which behaves similarly, but can have any number of control qubits ($[q_6,q_{11}]$),
+  instead of being limited to just two\cite{multi_toffoli}.
 
   The diffuser in Grover's algorithm (Figure~\ref{fig:FIGURA3}) can then increase the 
   probability of observing $-|x,y\rangle$ (states which have been marked by the oracle) 
-  through a process known as inversion about the mean.
+  through a process known as inversion about the mean~\cite{grover}.
 
-  \subsection{Semiclassical Arithmetic} 
+  % \subsection{Semiclassical Arithmetic} 
 
-  As a proof of concept (prior to the release of~\cite{quantum_factoring}),
-  a function $f(x,y)=x+y$ is defined such that $R_x=|x\rangle$, $R_y=|y\rangle$,
-  and after performing $f(R_x,R_y)$, the output register $R_z$ shall be in the
-  state $|x+y\rangle$.
+  % As a proof of concept (prior to the release of~\cite{quantum_factoring}),
+  % a function $f(x,y)=x+y$ is defined such that $R_x=|x\rangle$, $R_y=|y\rangle$,
+  % and after performing $f(R_x,R_y)$, the output register $R_z$ shall be in the
+  % state $|x+y\rangle$.
   
-  This approach was implemented in a similar manner to a classical full-adder,
-  and has been observed to work in simulation with perfect accuracy~\cite{quantum_full_adder}.
+  % This approach was implemented in a similar manner to a classical full-adder,
+  % and has been observed to work in simulation with perfect accuracy~\cite{quantum_full_adder}.
 
-  The semiclassical full-adder indeed works with Grover's algorithm. Input states were
-  filtered to only measure inputs which resulted in a sum matching some given value.
-  This is a trivial problem however, and only has potential usefulness due to the 
-  relationship between multiplication and addition.
+  % The semiclassical full-adder indeed works with Grover's algorithm. Input states were
+  % filtered to only measure inputs which resulted in a sum matching some given value.
+  % This is a trivial problem however, and only has potential usefulness due to the 
+  % relationship between multiplication and addition.
 
-  Unfortunately, semiclassical multiplication requires direct measurement of $R_x$
-  or $R_y$, which would collapse the superposition, so a different approach was
-  needed.
+  % Unfortunately, semiclassical multiplication requires direct measurement of $R_x$
+  % or $R_y$, which would collapse the superposition, so a different approach was
+  % needed.
 
   % Semiclassical arithmetic does have significant drawbacks, however. Despite
   % being relatively simple to implement due to the similarity with principles
@@ -361,25 +375,24 @@ collapse into one of these states with equal likelihood.
 
   The quantum fourier transform, QFT, is a very useful
   operation, typically used to transform a qubit register from the
-  computational basis (binary) to the fourier basis (phase).  The QFT operation 
-  is defined in great detail by Perez et al.~\cite{quantum_arithmetic}. 
+  computational basis (binary) to the fourier basis (phase).~\cite{quantum_arithmetic}. 
   
-  To summarize, given a qubit register $R_x=|x\rangle$
-  with $n$ qubits in the computational basis, there are $d=2^n$ potential states $|k\rangle$
-  in $|x\rangle$ = $\{|0\rangle, |1\rangle, \ldots, |d-1\rangle\}$, the QFT operation in this
-  basis would be defined as:
+  % To summarize, given a qubit register $R_x=|x\rangle$
+  % with $n$ qubits in the computational basis, there are $d=2^n$ potential states $|k\rangle$
+  % in $|x\rangle$ = $\{|0\rangle, |1\rangle, \ldots, |d-1\rangle\}$, the QFT operation in this
+  % basis would be defined as:
 
-  \begin{equation}\label{eqn:QFT}
-    QFT|x\rangle = \frac{1}{\sqrt{d}} \sum_{k=0}^{d-1}e^{i{\frac{2\pi x k}{d}}}|k\rangle
-  \end{equation}
+  % \begin{equation}\label{eqn:QFT}
+  %   QFT|x\rangle = \frac{1}{\sqrt{d}} \sum_{k=0}^{d-1}e^{i{\frac{2\pi x k}{d}}}|k\rangle
+  % \end{equation}
 
-  *It is worth noting that in some cases, a QFT on some $R_x$ may require a series of SWAP
-  operations $\{ SWP(q_0,q_{n-1}), SWP(q_1,q_{n-2}), \ldots, SWP(q_{\frac{n}{2}-1},q_{\frac{n}{2}})\}$
-  in order for future arithmetic to work as expected.
+  % *It is worth noting that in some cases, a QFT on some $R_x$ may require a series of SWAP
+  % operations $\{ SWP(q_0,q_{n-1}), SWP(q_1,q_{n-2}), \ldots, SWP(q_{\frac{n}{2}-1},q_{\frac{n}{2}})\}$
+  % in order for future arithmetic to work as expected.
 
-  Once in the fourier basis, a specific number $x$ may be encoded by applying some
-  rotation $\omega_k$ to qubits $q_k \in R_x | q_k=R_x[k]$. The rotation $\omega_k$ applied
-  to each qubit $q_k$ can be defined as $\omega_k = \omega^{x k} = e^{i \frac{2\pi x k}{d}}$.
+  % Once in the fourier basis, a specific number $x$ may be encoded by applying some
+  % rotation $\omega_k$ to qubits $q_k \in R_x | q_k=R_x[k]$. The rotation $\omega_k$ applied
+  % to each qubit $q_k$ can be defined as $\omega_k = \omega^{x k} = e^{i \frac{2\pi x k}{d}}$~\cite{quantum_arithmetic}.
 
   % The inverse QFT operation, IQFT, is simply the adjoint of QFT, and most 
   % implementations allow you to automatically generate the adjoint of a given operation.
@@ -387,23 +400,35 @@ collapse into one of these states with equal likelihood.
   computational basis, retaining the values which have been mapped and operations
   which have been applied to $R_x$.
 
-  Addition of two qubit registers $R_a$ in state $|a\rangle$ and $R_b$ in state 
-  $\phi(b)\rangle$ in the fourier basis 
-  ($\phi ADD(|a\rangle, |b\rangle)=|a + b\rangle$) may be performed by applying
-  controlled rotation gates $R_k$ which rotate qubits $b_j \in R_b$ by 
-  $\omega_j=e^\frac{2\pi i}{2^j}$ about the $z$-axis for each 
-  qubit $a_l | l \ge k, j=1+l-k$~\cite{quantum_arithmetic}. 
+  To summarize, the QFT domain allows addition to be done through rotations in another basis,
+  and these rotations can be scaled by some constant $c$, which in practice also scales the 
+  operand by $c$. Multiplication between values encoded in registers $R_x$ and $R_y$ can then be performed
+  out-of-place into $R_z$ by conditionally adding the full value encoded in $R_x$ to $R_z$ for each qubit 
+  $q_i$ in $R_y$, such that each of these register-wide additions are performed as controlled operations 
+  which will only occur if $q_i=|1\rangle$, and that these additions are also scaled by $c=2^i$.
 
-  Multiplication in the quantum fourier domain can be done similarly. In terms of
-  a quantum circuit generation implementation, simply treat the previously defined
-  addition method as a function which adds the value of one register to another,
-  and add some constant multiple $C$ as a parameter, adjusting $\omega_j$ to 
-  $\omega_{j,C}=e^{C\cdot \frac{2\pi i}{2^j}}$. Now, to send the product of the two values in $R_x$
-  and $R_y$ to $R_z$, do as follows: Add $|R_y|$ controlled $\phi ADD(R, q_c, C)$ gates to each
-  $q_x$ in $R_x$, which will add the value of $|C\cdot x\rangle$ to $R_z$ where $C=2^u$ for
-  each $q_u \in R_y \iff q_y = |1\rangle$. This is, in essence, performing repeated scaled addition from $R_x$ onto
-  $R_z$, but the scaling factor is the powers of two corresponding to qubits in $R_y$, which
-  in tandem is cumulatively equivalent to adding $|x\cdot y\rangle$ to $R_z$~\cite{quantum_arithmetic}.
+  The details of operations such as addition and multiplication are described at great
+  lengths in the cited works, and interested readers are recommended to seek assistance
+  there for further explanation~\cite{quantum_arithmetic}.
+
+  % Addition of two qubit registers $R_a$ in state $|a\rangle$ and $R_b$ in state 
+  % $\phi(b)\rangle$ in the fourier basis 
+  % ($\phi ADD(|a\rangle, |b\rangle)=|a + b\rangle$) may be performed by applying
+  % controlled rotation gates $R_k$ which rotate qubits $b_j \in R_b$ by 
+  % $\omega_j=e^\frac{2\pi i}{2^j}$ about the $z$-axis for each 
+  % qubit $a_l | l \ge k, j=1+l-k$~\cite{quantum_arithmetic}. 
+
+  % Multiplication in the quantum fourier domain can be done similarly. In terms of
+  % a quantum circuit generation implementation, simply treat the previously defined
+  % addition method as a function which adds the value of one register to another,
+  % and add some constant multiple $C$ as a parameter, adjusting $\omega_j$ to 
+  % $\omega_{j,C}=e^{C\cdot \frac{2\pi i}{2^j}}$. Now, to send the product of the two values in $R_x$
+  % and $R_y$ to $R_z$, do as follows: Add $|R_y|$ controlled $\phi ADD(R, q_c, C)$ gates to each
+  % $q_x$ in $R_x$, which will add the value of $|C\cdot x\rangle$ to $R_z$ where $C=2^u$ for
+  % each $q_u \in R_y$ as a controlled operation requiring that $q_u = |1\rangle$. 
+  % This is, in essence, performing repeated scaled addition from $R_x$ onto
+  % $R_z$, but the scaling factor is the powers of two corresponding to qubits in $R_y$, which
+  % in tandem is cumulatively equivalent to adding $|x\cdot y\rangle$ to $R_z$~\cite{quantum_arithmetic}.
 
   \subsection{Semiprime Factoring with Grover's Algorithm}
 
@@ -411,7 +436,12 @@ collapse into one of these states with equal likelihood.
   grover's, it is trivial to implement a SP factoring circuit. Our implementation
   follows the diagram in Figure~\ref{fig:FIGURA1}, while substituting $F(x,y)$ for
   the $\phi MULT(R_x, R_y)$ operation described at the end of section 
-  \ \ref{sec:qft_arithmetic}.
+  \ \ref{sec:qft_arithmetic}. Quantum computing operations can be represented as unitary
+  matrices, so for any $MULT(R_x, R_y)$, the adjoint operation $MULT^\dagger(R_x,R_y)$ will 
+  return all effected registers to their original states. The only change remaining after
+  applying the multiplication adjoint is that which was done by the oracle; the entangled state
+  of the target qubit has a flipped phase only in those states which resulted in our desired
+  semiprime was computed as an output- the states in which our prime factors reside.
 
   The only fine-tuning necessary here was to add additional bits to the $R_z$ register.
   Typically, only $\lceil \log_2(N)\rceil$ qubits are needed to represent some number $N$,
@@ -424,8 +454,15 @@ collapse into one of these states with equal likelihood.
   some sum of powers of 2 greater than $n$.
 
   The temporary solution we found was to simply decrease the size of $R_x$ and $R_y$ to 
-  $\lceil \log_2(\frac{N}{3})\rceil$, and set the size of $R_z$ to double that, to ensure no
-  further overflow could occur.
+  $n_x=\lceil \log_2(\frac{N}{3})\rceil$, and set the size of $R_z$ to double that, to ensure no
+  further overflow could occur. The size of $R_x$ and $R_y$ comes from the fact that $2$ and $3$ may
+  be considered trivial factors, so no number $p \le N/3$ will result as a factor. 
+  $\lceil\log_2(\frac{N}{3})\rceil$ is a simple computation to find the minimum number of bits required
+  to represent any number $\le \frac{N}{3}$ in binary, as would be encoded in the qubit registers. The
+  size of $R_z$ being double the size of $R_x$ or $R_y$ is based on the fact that the largest resultant
+  multiple from any value in $R_x$ or $R_y$ can be approximated as ${(2^{n_x})}^2=2^{2\cdot n_x}$, which 
+  in turn would require $2\cdot n_x$ bits to be safely represented. 
+  
 
   % \subsection{Quantum Circuit Simulation}
 
@@ -443,13 +480,29 @@ collapse into one of these states with equal likelihood.
 
 \section{Results and Discussion}
 
+Our implementation of Quantum Semiprime Factoring with Grover's Algorithm is a fully
+generalized circuit-building algorithm which can take any semiprime $N$ and return
+unique prime factors $p$ and $q$ with accuracy asymptotically approaching $100\%$~\cite{quantumfactoring_github}. 
+The program automatically calculates the required number of qubits for each register,
+and initializes a custom instance of Grover's oracle to check for the provided value $N$.
+The simulation uses statevectors to track the superposition of the circuit and apply
+gates as their corresponding matrices. The circuits are run numerous times, then
+correctness is checked across those runs to find the statistic for $\%$ acc, as seen 
+in Figure~\ref{fig:FIGURC1}.
+
+\begin{figure}[ht]\label{fig:FIGURC1}
+\centering
+\includegraphics[width=7.9cm]{results.png}
+% \includegraphics[width=15.8cm]{grover_inversion.png}
+% \includegraphics[width=14cm]{grover_inversion.png}
+\caption{Example program output for $N=143$. The state of each qubit 
+when measured is either $|1\rangle$ or $|0\rangle$, and registers are separated by underscores, as seen
+after `Full result: $\dots$'}
+\end{figure}
+
 To date, we have preliminary results based on CUDA-Q simulation of quantum circuits, 
 which have been compared to classic parallel methods to generate primes with a sieve 
 and search them for modulo zero factoring. 
-
-This work is still in progress, but we have a working implementation of Grover's 
-algorithm with the CUDA-Q simulation which can estimate the time to factor any 
-semiprime up to the current scaling limits of the CUDA-Q simulation\cite{quantumfactoring_github}. 
 
 We first plan to compare the Grover quantum circuit to our best parallel sieve 
 and modulo search with this scale-out with SDSC Expanse.
@@ -463,17 +516,19 @@ and modulo search with this scale-out with SDSC Expanse.
   not yet introduced the search-term reduction from $N$ to $M$ as is done by S. Whitlock 
   et al.\cite{quantum_factoring}. 
 
-  Due to the exploratory nature of this work, the initially sub-optimal nature of our 
-  implementation is intentional, because it allows for a more direct view of the inputs
-  and outputs in our circuit.
-
   For context, our current implementation uses $4 \lceil \log_2(\frac{N}{3})\rceil$ qubits
   to find the prime factors of an $n$-bit semiprime, whereas the design by S. Whitlock 
   et al.\cite{quantum_factoring} uses up to $2n-5$ qubits, which allowed them to simulate circuits which found
   prime factors of up to $35$-bit semiprimes, using up to a total of $65$ qubits. 
-  The limiting factor for our simulations is VRAM, so it is expected that after implementing 
+  The limiting factor for problem scaling in our simulations is memory, so it is expected that after implementing 
   the optimizations from S. Whitlock et al.,\ our simulations should be able to scale up to 
   $18$-bit semiprimes on the current equipment.
+
+  To be blatantly clear, this Grover's-based implementation is more of a proof-of-concept than
+  a truly preferrable design over Shor's. The longer time complexity of this implementation
+  is expected to coincide with increased error if it were to be run on an actual quantum computer,
+  and the implementation in it's current state has greater time complexity than current classical
+  methods like GNSF~\cite{Bai2016,quantum_factoring}.
 
   % In simulation, our implementation of quantum semiprime factoring with Grover's algorithm
   % has $100\%$ accuracy on all observed simulation runs with 100 shots each. The expected
@@ -486,20 +541,22 @@ and modulo search with this scale-out with SDSC Expanse.
 
 \balance
 
-Grover's algorithm has been demonstrated to be a highly versatile function,
-able to invert almost any function that can be implemented on a quantum 
-computer with inputs in superposition.
+Grover's algorithm is highly versatile, and has been implemented in a
+generalized fashion, such that it is effectively plug-and-play, with the
+only necessary parameter being the value to search for. Everything else is
+determined by the function that is chosen for $F(x, \dots)$.
 
-Quantum methods of SP factoring have been developing at a quick pace,
-and it will most likely not be very long before practical examples
-of quantum advantage may be seen.
+Despite the large time complexity, even this sub-optimal implementation requires
+fewer qubits than Shor's algorithm, and constructing the program in such a 
+generalized manner has made it trivial to use Grover's algorithm for nearly any other
+such function that can take as input registers that are in uniform superposition.
 
 \section{Future Work}
  
 The current priority regarding the quantum circuit is to implement the optimizations
 mentioned by S. Whitlock et al.\ to substitute the search term $N$ with the smaller
 search term $M$, which should reduce the number of qubits needed from 
-$4 \lceil \log_2(\frac{N}{3})\rceil$ to $2n-5$.
+$4 \lceil \log_2(\frac{N}{3})\rceil$ to $2n-5$\ \cite{quantum_factoring}.
 
 We have recently gained access to resources at the San Diego Supercomputing 
 Center (SDSC) Expanse cluster via an NSF allocation grant. This equipment will allow us to
